@@ -7,37 +7,22 @@ const squoosh = require('@squoosh/lib');
 const PLUGIN_NAME = 'gulp-squoosh';
 
 // By default, encode to same image type.
-const DefaultEncodeOptions = {
-	'.jpg': {
-		mozjpeg: {}
-	},
-	'.web': {
-		webp: {}
-	},
-	'.avif': {
-		avif: {}
-	},
-	'.jxl': {
-		jxl: {}
-	},
-	'.wp2': {
-		wp2: {}
-	},
-	'.png': {
-		oxipng: {}
-	}
-};
+const DefaultEncodeOptions = Object.fromEntries(
+	Object.entries(squoosh.encoders).map(([key, encoder]) => {
+		const extension = `.${encoder.extension}`;
+		return [extension, Object.fromEntries([[key, {}]])];
+	})
+);
 
-module.exports = function (options) {
-	const DefaultOptions = {
-		preprocessOptions: null,
-		encodeOptions: null
-	};
-
-	options = options || DefaultOptions;
+module.exports = function (encodeOptions, preprocessOptions) {
 	const transform = async function (file, enc, cb) {
 		if (file.isNull()) {
 			cb(null, file);
+			return;
+		}
+
+		if (file.isStream()) {
+			cb(new PluginError(PLUGIN_NAME, 'Streaming not supported'));
 			return;
 		}
 
@@ -47,16 +32,17 @@ module.exports = function (options) {
 			return;
 		}
 
+		encodeOptions = encodeOptions ? encodeOptions : DefaultEncodeOptions[file.extname];
+
 		try {
 			const imagePool = new squoosh.ImagePool();
 			const image = imagePool.ingestImage(file.contents);
 			await image.decoded;
 
-			if (options.preprocessOptions) {
-				await image.preprocess(options.preprocessOptions);
+			if (preprocessOptions) {
+				await image.preprocess(preprocessOptions);
 			}
 
-			const encodeOptions = options.encodeOptions ? options.encodeOptions : DefaultEncodeOptions[file.extname];
 			await image.encode(encodeOptions);
 
 			for (const encodedImagePromise of Object.values(image.encodedWith)) {
@@ -69,13 +55,12 @@ module.exports = function (options) {
 			}
 
 			await imagePool.close();
-
-			cb();
 		} catch (error) {
 			cb(new PluginError(PLUGIN_NAME, error, {filename: file.path}));
-			// eslint-disable-next-line no-useless-return
 			return;
 		}
+
+		cb();
 	};
 
 	return through.obj(transform);

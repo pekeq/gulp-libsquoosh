@@ -37,13 +37,11 @@ const squoosh = require('gulp-libsquoosh');
 
 function images() {
   return src('src/images/**/*.png')
-    .pipe(squoosh(
-      encodeOptions: {
-        oxipng: {},
-        webp: {},
-        avif: {},
-      }    
-    ))
+    .pipe(squoosh({
+			oxipng: {},
+			webp: {},
+			avif: {},
+		}))
     .pipe(dest('dist/images'));
 }
 
@@ -61,16 +59,13 @@ const squoosh = require('gulp-libsquoosh');
 function images() {
   return src('src/thumbnail/*.png')
     .pipe(squoosh(
-			preprocessOptions: {
+			null,
+			{
 				resize: {
 					enabled: true,
 					width: 200,  // specify either width or height
 				},
-			},
-      encodeOptions: {
-        oxipng: {},
-      }    
-    ))
+			}))
     .pipe(dest('dist/thumbnail'));
 }
 
