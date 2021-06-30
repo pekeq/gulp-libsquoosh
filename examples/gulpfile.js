@@ -1,14 +1,14 @@
 const {src, dest, parallel} = require('gulp');
 const squoosh = require('..');
 
-// minify to same format
+// Minify to same format
 function sample1() {
 	return src('*.png')
 		.pipe(squoosh())
 		.pipe(dest('output/sample1'));
 }
 
-// minify to multiple formats
+// Minify to multiple formats
 function sample2() {
 	return src('*.png')
 		.pipe(squoosh({
@@ -20,7 +20,7 @@ function sample2() {
 		.pipe(dest('output/sample2'));
 }
 
-// passthrough unsupported format
+// Passthrough unsupported format
 function sample3() {
 	return src('*.gif')
 		.pipe(squoosh({
@@ -31,7 +31,7 @@ function sample3() {
 		.pipe(dest('output/sample3'));
 }
 
-// resize
+// Resize
 function sample4() {
 	return src('*.png')
 		.pipe(squoosh({
@@ -40,7 +40,7 @@ function sample4() {
 					enabled: true,
 					width: 200,
 					height: 200
-				},
+				}
 			},
 			encodeOptions: {
 				avif: {}
