@@ -1,0 +1,20 @@
+{
+  "name": "gulp-libsquoosh",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "xo"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@squoosh/lib": "^0.3.1",
+    "plugin-error": "^1.0.1",
+    "through2": "^4.0.2"
+  },
+  "devDependencies": {
+    "gulp": "^4.0.2",
+    "xo": "^0.39.1"
+  }
+}
