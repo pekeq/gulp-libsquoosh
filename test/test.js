@@ -6,12 +6,13 @@ const fs = require('fs');
 const path = require('path');
 const gulp = require('gulp');
 const test = require('ava');
+const del = require('del');
 const assert = require('stream-assert');
 const squoosh = require('..');
 
 test.beforeEach(t => {
 	process.chdir(__dirname);
-	fs.rmSync(path.join(__dirname, 'tmp'), {force: true, recursive: true});
+	del.sync(path.join(__dirname, 'tmp'));
 });
 
 test('squoosh to same format', t => {
