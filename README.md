@@ -10,7 +10,7 @@ $ npm install --save-dev gulp-libsquoosh
 
 ## Usage
 
-Detailed description can be found in [libSquoosh README](https://github.com/GoogleChromeLabs/squoosh/tree/dev/libsquoosh).
+Detailed descriptions about options can be found in [libSquoosh README](https://github.com/GoogleChromeLabs/squoosh/tree/dev/libsquoosh).
 
 ### Basic
 
