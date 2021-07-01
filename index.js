@@ -52,14 +52,14 @@ module.exports = function (encodeOptions, preprocessOptions) {
 
 			await image.encode(encodeOptions);
 
-			for (const encodedImagePromise of Object.values(image.encodedWith)) {
-				// eslint-disable-next-line no-await-in-loop
-				const encodedImage = await encodedImagePromise;
-				const newfile = file.clone();
+			const tasks = Object.values(image.encodedWith).map(async encoder => {
+				const encodedImage = await encoder;
+				const newfile = file.clone({contents: false});
 				newfile.contents = Buffer.from(encodedImage.binary);
 				newfile.extname = `.${encodedImage.extension}`;
 				this.push(newfile);
-			}
+			});
+			await Promise.all(tasks);
 
 			await imagePool.close();
 		} catch (error) {
