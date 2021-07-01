@@ -1,40 +1,40 @@
 {
-  "name": "gulp-libsquoosh",
-  "version": "1.0.0",
-  "description": "Minify images with libsquoosh.",
-	"public": true,
-  "main": "index.js",
-  "scripts": {
-    "test": "xo && ava"
-  },
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/pekeq/gulp-libsquoosh.git"
-	},
-	"keywords": [
-		"gulp",
-		"gulp-plugin",
-		"gulp-libsquoosh",
-		"libsquoosh",
-		"squoosh"
-	],
-  "author": "Hideo Matsumoto <pekeq.9@gmail.com>",
-  "license": "MIT",
-	"bugs": {
-		"url": "https://github.com/pekeq/gulp-libsquoosh/issues"
-	},
-	"engines": {
-    "node": " ^12.5.0 || ^14.0.0 || ^16.0.0 "
-  },
-	"dependencies": {
-    "@squoosh/lib": "^0.3.1",
-    "plugin-error": "^1.0.1",
-    "through2": "^4.0.2"
-  },
-  "devDependencies": {
-    "ava": "^3.15.0",
-    "gulp": "^4.0.2",
-    "stream-assert": "^2.0.3",
-    "xo": "^0.39.1"
-  }
+ "name": "gulp-libsquoosh",
+ "version": "1.0.1",
+ "description": "Minify images with libsquoosh.",
+ "public": true,
+ "main": "index.js",
+ "scripts": {
+  "test": "xo && ava"
+ },
+ "repository": {
+  "type": "git",
+  "url": "https://github.com/pekeq/gulp-libsquoosh.git"
+ },
+ "keywords": [
+  "gulp",
+  "gulp-plugin",
+  "gulp-libsquoosh",
+  "libsquoosh",
+  "squoosh"
+ ],
+ "author": "Hideo Matsumoto <pekeq.9@gmail.com>",
+ "license": "MIT",
+ "bugs": {
+  "url": "https://github.com/pekeq/gulp-libsquoosh/issues"
+ },
+ "engines": {
+  "node": " ^12.5.0 || ^14.0.0 || ^16.0.0 "
+ },
+ "dependencies": {
+  "@squoosh/lib": "^0.3.1",
+  "plugin-error": "^1.0.1",
+  "through2": "^4.0.2"
+ },
+ "devDependencies": {
+  "ava": "^3.15.0",
+  "gulp": "^4.0.2",
+  "stream-assert": "^2.0.3",
+  "xo": "^0.39.1"
+ }
 }
