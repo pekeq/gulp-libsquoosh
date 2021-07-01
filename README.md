@@ -48,7 +48,6 @@ exports.images = images;
 
 ### Resize image
 
-
 ```js
 const { src, dest } = require('gulp');
 const squoosh = require('gulp-libsquoosh');
@@ -66,6 +65,39 @@ function images() {
         },
       }))
     .pipe(dest('dist/thumbnail'));
+}
+
+exports.images = images;
+```
+
+### Quantize, Rotate image
+
+```js
+const { src, dest } = require('gulp');
+const squoosh = require('gulp-libsquoosh');
+
+// minify png into png, webp, avif format
+function images() {
+  return src('src/images/**/*.png')
+    .pipe(squoosh(
+      {
+        oxipng: {
+          level: 6 // slower but more compression
+        },
+        webp: {},
+        avif: {}
+      },
+      {
+        quant: {
+          enabled: true,
+          numColors: 256
+        },
+        rotate: {
+          numRotations: 1 // (numRotations * 90) degrees
+        }
+      }
+    ))
+    .pipe(dest('dist/images'));
 }
 
 exports.images = images;

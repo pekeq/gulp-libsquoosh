@@ -68,3 +68,34 @@ test('passthrough unsupported format', t => {
 		});
 	});
 });
+
+test('quantize and rotate image', t => {
+	return new Promise(resolve => {
+		const file = 'cat_kotatsu_neko.png';
+		const stream = gulp.src(file)
+			.pipe(squoosh({
+				oxipng: {
+					level: 6
+				},
+				webp: {},
+				avif: {}
+			}, {
+				quant: {
+					enabled: true,
+					numColors: 256
+				},
+				rotate: {
+					numRotations: 1
+				}
+			}))
+			.pipe(gulp.dest('tmp'));
+		stream.on('end', () => {
+			t.notThrows(() => {
+				fs.accessSync('tmp/cat_kotatsu_neko.png');
+				fs.accessSync('tmp/cat_kotatsu_neko.avif');
+				fs.accessSync('tmp/cat_kotatsu_neko.webp');
+			});
+			resolve();
+		});
+	});
+});
