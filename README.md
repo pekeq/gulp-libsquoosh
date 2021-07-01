@@ -10,6 +10,8 @@ $ npm install --save-dev gulp-libsquoosh
 
 ## Usage
 
+Detailed description can be found in [libSquoosh README](https://github.com/GoogleChromeLabs/squoosh/tree/dev/libsquoosh).
+
 ### Basic
 
 ```js
@@ -32,7 +34,7 @@ exports.images = images;
 const { src, dest } = require('gulp');
 const squoosh = require('gulp-libsquoosh');
 
-// minify png into png, webp, avif format
+// minify png into png, webp and avif format
 function images() {
   return src('src/images/**/*.png')
     .pipe(squoosh({
@@ -76,7 +78,7 @@ exports.images = images;
 const { src, dest } = require('gulp');
 const squoosh = require('gulp-libsquoosh');
 
-// minify png into png, webp, avif format
+// quantize, rotate and minify png into png, webp and avif format
 function images() {
   return src('src/images/**/*.png')
     .pipe(squoosh(
@@ -88,11 +90,14 @@ function images() {
         avif: {}
       },
       {
+        // quantize images
         quant: {
           enabled: true,
-          numColors: 256
+          numColors: 256 // default=255
         },
+        // rotate images
         rotate: {
+          enabled: true,
           numRotations: 1 // (numRotations * 90) degrees
         }
       }

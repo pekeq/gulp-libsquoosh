@@ -85,6 +85,7 @@ test('quantize and rotate image', t => {
 					numColors: 256
 				},
 				rotate: {
+					enabled: true,
 					numRotations: 1
 				}
 			}))
