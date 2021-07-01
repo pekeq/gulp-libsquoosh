@@ -7,7 +7,6 @@ const path = require('path');
 const gulp = require('gulp');
 const test = require('ava');
 const del = require('del');
-const assert = require('stream-assert');
 const squoosh = require('..');
 
 test.beforeEach(t => {
