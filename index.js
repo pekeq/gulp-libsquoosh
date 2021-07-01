@@ -22,6 +22,14 @@ const DefaultEncodeOptions = Object.fromEntries(
  * @returns {NodeJS.ReadWriteStream}
  */
 module.exports = function (encodeOptions, preprocessOptions) {
+	if (typeof encodeOptions === 'object' &&
+		typeof preprocessOptions === 'undefined' &&
+		typeof encodeOptions.encodeOptions !== 'undefined' &&
+		typeof encodeOptions.preprocessOptions !== 'undefined') {
+		preprocessOptions = encodeOptions.preprocessOptions;
+		encodeOptions = encodeOptions.encodeOptions;
+	}
+
 	const transform = async function (file, enc, cb) {
 		if (file.isNull()) {
 			cb(null, file);
