@@ -1,6 +1,6 @@
 # gulp-libsquoosh
 
-Minify images with [libsquoosh](https://github.com/GoogleChromeLabs/squoosh/tree/dev/libsquoosh).
+Minify images with [libSquoosh](https://github.com/GoogleChromeLabs/squoosh/tree/dev/libsquoosh).
 
 ## Install
 
@@ -57,12 +57,12 @@ const squoosh = require('gulp-libsquoosh');
 function images() {
   return src('src/thumbnail/*.png')
     .pipe(squoosh(
-      null,
+      null, // use default
       {
         resize: {
           enabled: true,
           width: 200,  // specify either width or height
-                       // when you specify width and height, image resized to exact size
+                       // when you specify width and height, image resized to exact size you specified
         },
       }))
     .pipe(dest('dist/thumbnail'));
@@ -70,3 +70,14 @@ function images() {
 
 exports.images = images;
 ```
+
+## API
+
+### squoosh(encodeOptions?, preprocessOptions?)
+
+Description of the options can be found in [libSquoosh README](https://github.com/GoogleChromeLabs/squoosh/tree/dev/libsquoosh#preprocessing-and-encoding-images).
+
+## License
+
+MIT License
+Copyright (c) 2021 Hideo Matsumoto
