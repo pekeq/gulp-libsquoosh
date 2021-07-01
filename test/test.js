@@ -19,7 +19,7 @@ test('squoosh to same format', t => {
 		const file = '1x1.png';
 		const stream = gulp.src(file)
 			.pipe(squoosh({
-				oxipng: {},
+				oxipng: {}
 			}))
 			.pipe(gulp.dest('tmp'));
 		stream.on('end', () => {
@@ -44,6 +44,24 @@ test('squoosh to webp, avif', t => {
 			t.notThrows(() => {
 				fs.accessSync('tmp/1x1.avif');
 				fs.accessSync('tmp/1x1.webp');
+			});
+			resolve();
+		});
+	});
+});
+
+test('passthrough unsupported format', t => {
+	return new Promise(resolve => {
+		const file = '1x1.gif';
+		const stream = gulp.src(file)
+			.pipe(squoosh({
+				avif: {},
+				webp: {}
+			}))
+			.pipe(gulp.dest('tmp'));
+		stream.on('end', () => {
+			t.notThrows(() => {
+				fs.accessSync('tmp/1x1.gif');
 			});
 			resolve();
 		});
