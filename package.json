@@ -5,7 +5,7 @@
  "public": true,
  "main": "index.js",
  "scripts": {
-  "test": "xo && ava",
+  "test": "xo && ava --serial",
   "types": "npx typescript index.js --declaration --allowJs --emitDeclarationOnly --outDir ."
  },
  "repository": {

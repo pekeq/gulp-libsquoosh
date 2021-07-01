@@ -117,4 +117,5 @@ Description of the options can be found in [libSquoosh README](https://github.co
 ## License
 
 MIT License
+
 Copyright (c) 2021 Hideo Matsumoto

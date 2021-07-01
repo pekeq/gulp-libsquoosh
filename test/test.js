@@ -100,3 +100,23 @@ test('quantize and rotate image', t => {
 		});
 	});
 });
+
+test('object argument', t => {
+	return new Promise(resolve => {
+		const file = '1x1.png';
+		const stream = gulp.src(file)
+			.pipe(squoosh({
+				encodeOptions: {
+					oxipng: {}
+				},
+				preprocessOptions: {}
+			}))
+			.pipe(gulp.dest('tmp'));
+		stream.on('end', () => {
+			t.notThrows(() => {
+				fs.accessSync('tmp/1x1.png');
+			});
+			resolve();
+		});
+	});
+});
