@@ -14,6 +14,13 @@ const DefaultEncodeOptions = Object.fromEntries(
 	})
 );
 
+/**
+ * Minify images with libSquoosh.
+ * @function
+ * @param {object} [encodeOptions] - An object with encoders to use, and their settings.
+ * @param {object} [preprocessOptions] - An object with preprocessors to use, and their settings.
+ * @returns {NodeJS.ReadWriteStream}
+ */
 module.exports = function (encodeOptions, preprocessOptions) {
 	const transform = async function (file, enc, cb) {
 		if (file.isNull()) {
