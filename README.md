@@ -15,23 +15,23 @@ Detailed descriptions about options can be found in [libSquoosh README](https://
 ### Basic
 
 ```js
-const { src, dest } = require('gulp');
+const { src, dest, series } = require('gulp');
 const squoosh = require('gulp-libsquoosh');
 
-// minify image into same format
+// minify images into same format
 function images() {
   return src('src/images/**')
     .pipe(squoosh())
     .pipe(dest('dist/images'));
 }
 
-exports.images = images;
+exports.default = series(images);
 ```
 
 ### Convert to multiple image formats
 
 ```js
-const { src, dest } = require('gulp');
+const { src, dest, series } = require('gulp');
 const squoosh = require('gulp-libsquoosh');
 
 // minify png into png, webp and avif format
@@ -45,13 +45,13 @@ function images() {
     .pipe(dest('dist/images'));
 }
 
-exports.images = images;
+exports.default = series(images);
 ```
 
 ### Resize image
 
 ```js
-const { src, dest } = require('gulp');
+const { src, dest, series } = require('gulp');
 const squoosh = require('gulp-libsquoosh');
 
 // resize image to width 200px with keeping aspect ratio.
@@ -69,19 +69,19 @@ function images() {
     .pipe(dest('dist/thumbnail'));
 }
 
-exports.images = images;
+exports.default = series(images);
 ```
 
 ### Specify encodeOptions, preprocessOptions in one object argument.
 
 ```js
-const { src, dest } = require('gulp');
+const { src, dest, series } = require('gulp');
 const squoosh = require('gulp-libsquoosh');
 
 // squoosh({encodeOptions:..., preprocessOptions:...})
 function images() {
   return src('src/images/**')
-    .pipe(squoosh(
+    .pipe(squoosh({
       encodeOptions: {
         avif: {},
         webp: {}
@@ -92,17 +92,17 @@ function images() {
           numRotations: 2
         }
       }
-    ))
+    }))
     .pipe(dest('dist/images'));
 }
 
-exports.images = images;
+exports.default = series(images);
 ```
 
 ### Resize using original image size
 
 ```js
-const { src, dest } = require('gulp');
+const { src, dest, series } = require('gulp');
 const squoosh = require('gulp-libsquoosh');
 
 // resize image to half size of original.
@@ -113,14 +113,14 @@ function images() {
         resize: {
           enabled: true,
           width: Math.round(src.width / 2),
-          height: Math.round(src.width / 2)
+          height: Math.round(src.height / 2)
         }
       }
     })))
     .pipe(dest('dist/thumbnail'));
 }
 
-exports.images = images;
+exports.default = series(images);
 ```
 
 You can use some helper functions. It acts like as "object-fit" CSS property.
@@ -129,7 +129,7 @@ You can use some helper functions. It acts like as "object-fit" CSS property.
 - `scaleDown(width, [height])`
 
 ```js
-const { src, dest } = require('gulp');
+const { src, dest, series } = require('gulp');
 const squoosh = require('gulp-libsquoosh');
 
 // resize image to fit inside of 200x200 box.
@@ -146,13 +146,13 @@ function images() {
     .pipe(dest('dist/thumbnail'));
 }
 
-exports.images = images;
+exports.default = series(images);
 ```
 
 ### Quantize, Rotate image
 
 ```js
-const { src, dest } = require('gulp');
+const { src, dest, series } = require('gulp');
 const squoosh = require('gulp-libsquoosh');
 
 // quantize, rotate and minify png into png, webp and avif format
@@ -182,21 +182,21 @@ function images() {
     .pipe(dest('dist/images'));
 }
 
-exports.images = images;
+exports.default = series(images);
 ```
 
 ### More complex
 
 ```js
 const path = require('path');
-const { src, dest } = require('gulp');
+const { src, dest, series } = require('gulp');
 const squoosh = require('gulp-libsquoosh');
 
 function images() {
-  return src(['*.png', '*.jpg'])
+  return src(['src/images/**/*.{png,jpg,webp}'])
     .pipe(squoosh(src => {
       const extname = path.extname(src.path);
-      const options = {
+      let options = {
         encodeOptions: squoosh.DefaultEncodeOptions[extname]
       };
 
@@ -225,10 +225,10 @@ function images() {
 
       return options;
     }))
-    .pipe(dest('tmp'));
+    .pipe(dest('dist/images'));
 }
 
-exports.images = images;
+exports.default = series(images);
 ```
 
 ## API

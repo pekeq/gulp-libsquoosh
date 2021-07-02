@@ -103,7 +103,7 @@ function squoosh(encodeOptions, preprocessOptions) {
 
 			currentEncodeOptions = (currentEncodeOptions && Object.keys(currentEncodeOptions).length > 0) ? currentEncodeOptions : DefaultEncodeOptions[file.extname];
 
-			if (preprocessOptions) {
+			if (currentPreprocessOptions) {
 				await image.preprocess(currentPreprocessOptions);
 			}
 
