@@ -14,6 +14,20 @@ test.beforeEach(t => {
 	del.sync(path.join(__dirname, 'tmp'));
 });
 
+test('basic usage', t => {
+	return new Promise(resolve => {
+		const file = '1x1.jpg';
+		const stream = gulp.src(file)
+			.pipe(squoosh())
+			.pipe(gulp.dest('tmp'));
+		stream.on('end', () => {
+			t.true(fs.existsSync('tmp/1x1.jpg'));
+			t.false(fs.existsSync('tmp/1x1.webp'));
+			resolve();
+		});
+	});
+});
+
 test('squoosh to same format', t => {
 	return new Promise(resolve => {
 		const file = '1x1.png';
@@ -23,9 +37,7 @@ test('squoosh to same format', t => {
 			}))
 			.pipe(gulp.dest('tmp'));
 		stream.on('end', () => {
-			t.notThrows(() => {
-				fs.accessSync('tmp/1x1.png');
-			});
+			t.true(fs.existsSync('tmp/1x1.png'));
 			resolve();
 		});
 	});
@@ -41,10 +53,9 @@ test('squoosh to webp, avif', t => {
 			}))
 			.pipe(gulp.dest('tmp'));
 		stream.on('end', () => {
-			t.notThrows(() => {
-				fs.accessSync('tmp/1x1.avif');
-				fs.accessSync('tmp/1x1.webp');
-			});
+			t.true(fs.existsSync('tmp/1x1.avif'));
+			t.true(fs.existsSync('tmp/1x1.webp'));
+			t.false(fs.existsSync('tmp/1x1.png'));
 			resolve();
 		});
 	});
@@ -60,9 +71,9 @@ test('passthrough unsupported format', t => {
 			}))
 			.pipe(gulp.dest('tmp'));
 		stream.on('end', () => {
-			t.notThrows(() => {
-				fs.accessSync('tmp/1x1.gif');
-			});
+			t.true(fs.existsSync('tmp/1x1.gif'));
+			t.false(fs.existsSync('tmp/1x1.avif'));
+			t.false(fs.existsSync('tmp/1x1.webp'));
 			resolve();
 		});
 	});
@@ -70,8 +81,8 @@ test('passthrough unsupported format', t => {
 
 test('quantize and rotate image', t => {
 	return new Promise(resolve => {
-		const file = 'cat_kotatsu_neko.png';
-		const stream = gulp.src(file)
+		const base = 'cat_kotatsu_neko';
+		const stream = gulp.src(`${base}.png`)
 			.pipe(squoosh({
 				oxipng: {
 					level: 6
@@ -90,11 +101,9 @@ test('quantize and rotate image', t => {
 			}))
 			.pipe(gulp.dest('tmp'));
 		stream.on('end', () => {
-			t.notThrows(() => {
-				fs.accessSync('tmp/cat_kotatsu_neko.png');
-				fs.accessSync('tmp/cat_kotatsu_neko.avif');
-				fs.accessSync('tmp/cat_kotatsu_neko.webp');
-			});
+			t.true(fs.existsSync(`tmp/${base}.png`));
+			t.true(fs.existsSync(`tmp/${base}.avif`));
+			t.true(fs.existsSync(`tmp/${base}.webp`));
 			resolve();
 		});
 	});
