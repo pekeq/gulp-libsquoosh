@@ -13,11 +13,19 @@
   "url": "https://github.com/pekeq/gulp-libsquoosh.git"
  },
  "keywords": [
-  "gulp",
-  "gulp-plugin",
   "gulp-libsquoosh",
+  "gulp",
+  "gulpplugin",
+  "gulp-plugin",
+  "squoosh",
   "libsquoosh",
-  "squoosh"
+  "avif",
+  "jpeg-xl",
+  "jpegxl",
+  "mozjpeg",
+  "oxipng",
+  "webp",
+  "webp2"
  ],
  "author": "Hideo Matsumoto <pekeq.9@gmail.com>",
  "license": "MIT",
