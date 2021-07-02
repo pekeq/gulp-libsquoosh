@@ -6,7 +6,10 @@ const libSquoosh = require('@squoosh/lib');
 
 const PLUGIN_NAME = 'gulp-squoosh';
 
-// By default, encode to same image type.
+/**
+ * By default, encode to same image type.
+ * @typedef {[extension:string]: Object}
+ */
 const DefaultEncodeOptions = Object.fromEntries(
 	Object.entries(libSquoosh.encoders).map(([key, encoder]) => {
 		const extension = `.${encoder.extension}`;
@@ -82,6 +85,9 @@ function squoosh(encodeOptions, preprocessOptions) {
 			return;
 		}
 
+		let currentEncodeOptions = encodeOptions;
+		let currentPreprocessOptions = preprocessOptions;
+
 		try {
 			const imagePool = new libSquoosh.ImagePool();
 			const image = imagePool.ingestImage(file.contents);
@@ -90,18 +96,18 @@ function squoosh(encodeOptions, preprocessOptions) {
 			if (typeof encodeOptions === 'function') {
 				/** @type {SquooshCallback} */
 				const callback = encodeOptions;
-				const result = callback(new ImageSize(decoded));
-				encodeOptions = result.encodeOptions || null;
-				preprocessOptions = result.preprocessOptions || null;
+				const result = callback(new ImageSize(decoded, file.path));
+				currentEncodeOptions = result.encodeOptions || null;
+				currentPreprocessOptions = result.preprocessOptions || null;
 			}
 
-			encodeOptions = (encodeOptions && Object.keys(encodeOptions).length > 0) ? encodeOptions : DefaultEncodeOptions[file.extname];
+			currentEncodeOptions = (currentEncodeOptions && Object.keys(currentEncodeOptions).length > 0) ? currentEncodeOptions : DefaultEncodeOptions[file.extname];
 
 			if (preprocessOptions) {
-				await image.preprocess(preprocessOptions);
+				await image.preprocess(currentPreprocessOptions);
 			}
 
-			await image.encode(encodeOptions);
+			await image.encode(currentEncodeOptions);
 
 			const tasks = Object.values(image.encodedWith).map(async encoder => {
 				const encodedImage = await encoder;
@@ -127,10 +133,16 @@ function squoosh(encodeOptions, preprocessOptions) {
 /**
  * @class
  * @param {Object} bitmap
+ * @param {string} path - The full path to the file.
  */
-function ImageSize({bitmap}) {
+function ImageSize({bitmap}, path) {
+	/** @type {number} */
 	this.width = bitmap.width;
+
+	/** @type {number} */
 	this.height = bitmap.height;
+
+	this.path = path;
 }
 
 /**
@@ -200,6 +212,7 @@ ImageSize.prototype.cover = function (targetWidth, targetHeight) {
 	};
 };
 
+squoosh.DefaultEncodeOptions = DefaultEncodeOptions;
 squoosh.ImageSize = ImageSize;
 
 module.exports = squoosh;

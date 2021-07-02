@@ -9,6 +9,8 @@ const test = require('ava');
 const del = require('del');
 const squoosh = require('..');
 
+const dirname = __dirname;
+
 test.beforeEach(t => {
 	process.chdir(__dirname);
 	del.sync(path.join(__dirname, 'tmp'));
@@ -20,9 +22,35 @@ test('basic usage', t => {
 		const stream = gulp.src(file)
 			.pipe(squoosh())
 			.pipe(gulp.dest('tmp'));
-		stream.on('end', () => {
+		stream.on('finish', () => {
 			t.true(fs.existsSync('tmp/1x1.jpg'));
 			t.false(fs.existsSync('tmp/1x1.webp'));
+			resolve();
+		});
+	});
+});
+
+test('array src', t => {
+	return new Promise(resolve => {
+		const stream = gulp.src(['1x1.png', 'cat_kotatsu_neko.png'])
+			.pipe(squoosh())
+			.pipe(gulp.dest('tmp'));
+		stream.on('finish', () => {
+			t.true(fs.existsSync('tmp/1x1.png'));
+			t.true(fs.existsSync('tmp/cat_kotatsu_neko.png'));
+			resolve();
+		});
+	});
+});
+
+test('wildcard src', t => {
+	return new Promise(resolve => {
+		const stream = gulp.src(['*.png'])
+			.pipe(squoosh())
+			.pipe(gulp.dest('tmp'));
+		stream.on('finish', () => {
+			t.true(fs.existsSync('tmp/1x1.png'));
+			t.true(fs.existsSync('tmp/cat_kotatsu_neko.png'));
 			resolve();
 		});
 	});
@@ -36,7 +64,7 @@ test('squoosh to same format', t => {
 				oxipng: {}
 			}))
 			.pipe(gulp.dest('tmp'));
-		stream.on('end', () => {
+		stream.on('finish', () => {
 			t.true(fs.existsSync('tmp/1x1.png'));
 			resolve();
 		});
@@ -52,7 +80,7 @@ test('squoosh to webp, avif', t => {
 				webp: {}
 			}))
 			.pipe(gulp.dest('tmp'));
-		stream.on('end', () => {
+		stream.on('finish', () => {
 			t.true(fs.existsSync('tmp/1x1.avif'));
 			t.true(fs.existsSync('tmp/1x1.webp'));
 			t.false(fs.existsSync('tmp/1x1.png'));
@@ -70,7 +98,7 @@ test('passthrough unsupported format', t => {
 				webp: {}
 			}))
 			.pipe(gulp.dest('tmp'));
-		stream.on('end', () => {
+		stream.on('finish', () => {
 			t.true(fs.existsSync('tmp/1x1.gif'));
 			t.false(fs.existsSync('tmp/1x1.avif'));
 			t.false(fs.existsSync('tmp/1x1.webp'));
@@ -100,7 +128,7 @@ test('quantize and rotate image', t => {
 				}
 			}))
 			.pipe(gulp.dest('tmp'));
-		stream.on('end', () => {
+		stream.on('finish', () => {
 			t.true(fs.existsSync(`tmp/${base}.png`));
 			t.true(fs.existsSync(`tmp/${base}.avif`));
 			t.true(fs.existsSync(`tmp/${base}.webp`));
@@ -119,7 +147,7 @@ test('object argument - encodeOptions only', t => {
 				}
 			}))
 			.pipe(gulp.dest('tmp'));
-		stream.on('end', () => {
+		stream.on('finish', () => {
 			t.true(fs.existsSync('tmp/1x1.webp'));
 			resolve();
 		});
@@ -139,7 +167,7 @@ test('object argument - preprocessOptions only', t => {
 				}
 			}))
 			.pipe(gulp.dest('tmp'));
-		stream.on('end', () => {
+		stream.on('finish', () => {
 			t.true(fs.existsSync(`tmp/${base}.png`));
 			resolve();
 		});
@@ -163,7 +191,7 @@ test('object argument - both encodeOptions,preprocessOptions', t => {
 				}
 			}))
 			.pipe(gulp.dest('tmp'));
-		stream.on('end', () => {
+		stream.on('finish', () => {
 			t.true(fs.existsSync(`tmp/${base}.avif`));
 			t.true(fs.existsSync(`tmp/${base}.webp`));
 			resolve();
@@ -184,7 +212,7 @@ test('function argument contain', t => {
 				}
 			})))
 			.pipe(gulp.dest('tmp'));
-		stream.on('end', () => {
+		stream.on('finish', () => {
 			t.true(fs.existsSync(`tmp/${base}.png`));
 			resolve();
 		});
@@ -204,8 +232,45 @@ test('function argument cover', t => {
 				}
 			})))
 			.pipe(gulp.dest('tmp'));
-		stream.on('end', () => {
+		stream.on('finish', () => {
 			t.true(fs.existsSync(`tmp/${base}.png`));
+			resolve();
+		});
+	});
+});
+
+test('more complex', t => {
+	return new Promise(resolve => {
+		const base = 'cat_kotatsu_neko';
+		const stream = gulp.src(['*.png', '*.jpg'])
+			.pipe(squoosh(src => {
+				const extname = path.extname(src.path);
+				const options = {
+					encodeOptions: squoosh.DefaultEncodeOptions[extname]
+				};
+				if (extname === '.jpg') {
+					options.encodeOptions = {jxl: {}};
+				}
+
+				if (extname === '.png') {
+					options.encodeOptions = {avif: {}};
+					options.preprocessOptions = {
+						quant: {
+							enabled: true,
+							numColors: 16
+						}
+					};
+				}
+
+				return options;
+			}))
+			.pipe(gulp.dest('tmp'));
+		stream.on('finish', () => {
+			t.false(fs.existsSync(`tmp/${base}.png`));
+			t.true(fs.existsSync(`tmp/${base}.avif`));
+			t.false(fs.existsSync('tmp/1x1.png'));
+			t.true(fs.existsSync('tmp/1x1.avif'));
+			t.true(fs.existsSync('tmp/1x1.jxl'));
 			resolve();
 		});
 	});

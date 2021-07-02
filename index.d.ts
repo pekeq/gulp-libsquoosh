@@ -37,7 +37,7 @@ export = squoosh;
  */
 declare function squoosh(encodeOptions?: (EncodeOptions | SquooshOptions | SquooshCallback), preprocessOptions: any): NodeJS.ReadWriteStream;
 declare namespace squoosh {
-    export { ImageSize, BoxSize, SquooshOptions, SquooshCallback, EncodeOptions, PreprocessOptions };
+    export { DefaultEncodeOptions, ImageSize, BoxSize, SquooshOptions, SquooshCallback, EncodeOptions, PreprocessOptions };
 }
 type EncodeOptions = {
     mozjpeg?: any;
@@ -53,18 +53,32 @@ type SquooshOptions = {
 };
 type SquooshCallback = (imageSize: ImageSize) => BoxSize;
 /**
+ * : Object}
+ */
+type DefaultEncodeOptions = [extension: string];
+/**
+ * By default, encode to same image type.
+ * @typedef {[extension:string]: Object}
+ */
+declare const DefaultEncodeOptions: any;
+/**
  * @class
  * @param {Object} bitmap
+ * @param {string} path - The full path to the file.
  */
-declare function ImageSize({ bitmap }: any): void;
+declare function ImageSize({ bitmap }: any, path: string): void;
 declare class ImageSize {
     /**
      * @class
      * @param {Object} bitmap
+     * @param {string} path - The full path to the file.
      */
-    constructor({ bitmap }: any);
-    width: any;
-    height: any;
+    constructor({ bitmap }: any, path: string);
+    /** @type {number} */
+    width: number;
+    /** @type {number} */
+    height: number;
+    path: string;
     /**
      * Scale to keep its aspect ratio while fitting within the specified bounding box.
      * @param {number} targetWidth

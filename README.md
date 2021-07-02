@@ -72,6 +72,33 @@ function images() {
 exports.images = images;
 ```
 
+### Specify encodeOptions, preprocessOptions in one object argument.
+
+```js
+const { src, dest } = require('gulp');
+const squoosh = require('gulp-libsquoosh');
+
+// minify image into same format
+function images() {
+  return src('src/images/**')
+    .pipe(squoosh(
+      encodeOptions: {
+        avif: {},
+        webp: {}
+      },
+      preprocessOptions: {
+        rotate: {
+          enabled: true,
+          numRotations: 2
+        }
+      }
+    ))
+    .pipe(dest('dist/images'));
+}
+
+exports.images = images;
+```
+
 ### Resize using original image size
 
 ```js
@@ -152,33 +179,6 @@ function images() {
         }
       }
     ))
-    .pipe(dest('dist/images'));
-}
-
-exports.images = images;
-```
-
-### Argument Style
-
-```js
-const { src, dest } = require('gulp');
-const squoosh = require('gulp-libsquoosh');
-
-function images() {
-  return src('src/images/**/*.png')
-    .pipe(squoosh({
-      encodeOptions: {
-        oxipng: {},
-        webp: {},
-        avif: {}
-      },
-      preprocessOptions: {
-        quant: {
-          enabled: true,
-          numColors: 256
-        }
-      }
-    }))
     .pipe(dest('dist/images'));
 }
 

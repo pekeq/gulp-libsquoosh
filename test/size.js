@@ -4,7 +4,7 @@ const test = require('ava');
 const squoosh = require('..');
 
 test('contain 1', t => {
-	const image = new squoosh.ImageSize({bitmap: {width: 200, height: 200}});
+	const image = new squoosh.ImageSize({bitmap: {width: 200, height: 200}}, '/path/to/file.jpg');
 	let size;
 
 	size = image.contain(100, 100);
@@ -29,7 +29,7 @@ test('contain 1', t => {
 });
 
 test('contain 2', t => {
-	const image = new squoosh.ImageSize({bitmap: {width: 400, height: 200}});
+	const image = new squoosh.ImageSize({bitmap: {width: 400, height: 200}}, '/path/to/file.jpg');
 	let size;
 
 	size = image.contain(100, 100);
@@ -54,7 +54,7 @@ test('contain 2', t => {
 });
 
 test('contain 3', t => {
-	const image = new squoosh.ImageSize({bitmap: {width: 200, height: 400}});
+	const image = new squoosh.ImageSize({bitmap: {width: 200, height: 400}}, '/path/to/file.jpg');
 	let size;
 
 	size = image.contain(100, 100);
@@ -79,7 +79,7 @@ test('contain 3', t => {
 });
 
 test('scaleDown 1', t => {
-	const image = new squoosh.ImageSize({bitmap: {width: 200, height: 400}});
+	const image = new squoosh.ImageSize({bitmap: {width: 200, height: 400}}, '/path/to/file.jpg');
 	let size;
 
 	size = image.scaleDown(100, 100);
@@ -104,7 +104,7 @@ test('scaleDown 1', t => {
 });
 
 test('cover 1', t => {
-	const image = new squoosh.ImageSize({bitmap: {width: 200, height: 200}});
+	const image = new squoosh.ImageSize({bitmap: {width: 200, height: 200}}, '/path/to/file.jpg');
 	let size;
 
 	size = image.cover(100, 100);
@@ -129,7 +129,7 @@ test('cover 1', t => {
 });
 
 test('cover 2', t => {
-	const image = new squoosh.ImageSize({bitmap: {width: 400, height: 200}});
+	const image = new squoosh.ImageSize({bitmap: {width: 400, height: 200}}, '/path/to/file.jpg');
 	let size;
 
 	size = image.cover(100, 100);
