@@ -78,7 +78,7 @@ exports.images = images;
 const { src, dest } = require('gulp');
 const squoosh = require('gulp-libsquoosh');
 
-// minify image into same format
+// squoosh({encodeOptions:..., preprocessOptions:...})
 function images() {
   return src('src/images/**')
     .pipe(squoosh(
@@ -180,6 +180,52 @@ function images() {
       }
     ))
     .pipe(dest('dist/images'));
+}
+
+exports.images = images;
+```
+
+### More complex
+
+```js
+const path = require('path');
+const { src, dest } = require('gulp');
+const squoosh = require('gulp-libsquoosh');
+
+function images() {
+  return src(['*.png', '*.jpg'])
+    .pipe(squoosh(src => {
+      const extname = path.extname(src.path);
+      const options = {
+        encodeOptions: squoosh.DefaultEncodeOptions[extname]
+      };
+
+      if (extname === '.jpg') {
+        options = {
+          encodeOptions: {
+            jxl: {},
+            mozjpeg: {}
+          }
+        };
+      }
+
+      if (extname === '.png') {
+        options = {
+          encodeOptions: {
+            avif: {}
+          },
+          preprocessOptions: {
+            quant: {
+              enabled: true,
+              numColors: 16
+            }
+          }
+        };
+      }
+
+      return options;
+    }))
+    .pipe(dest('tmp'));
 }
 
 exports.images = images;
