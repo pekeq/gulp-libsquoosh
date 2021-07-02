@@ -109,21 +109,103 @@ test('quantize and rotate image', t => {
 	});
 });
 
-test('object argument', t => {
+test('object argument - encodeOptions only', t => {
 	return new Promise(resolve => {
 		const file = '1x1.png';
 		const stream = gulp.src(file)
 			.pipe(squoosh({
 				encodeOptions: {
-					oxipng: {}
-				},
-				preprocessOptions: {}
+					webp: {}
+				}
 			}))
 			.pipe(gulp.dest('tmp'));
 		stream.on('end', () => {
-			t.notThrows(() => {
-				fs.accessSync('tmp/1x1.png');
-			});
+			t.true(fs.existsSync('tmp/1x1.webp'));
+			resolve();
+		});
+	});
+});
+
+test('object argument - preprocessOptions only', t => {
+	return new Promise(resolve => {
+		const base = 'cat_kotatsu_neko';
+		const stream = gulp.src(`${base}.png`)
+			.pipe(squoosh({
+				preprocessOptions: {
+					rotate: {
+						enabled: true,
+						numRotations: 2
+					}
+				}
+			}))
+			.pipe(gulp.dest('tmp'));
+		stream.on('end', () => {
+			t.true(fs.existsSync(`tmp/${base}.png`));
+			resolve();
+		});
+	});
+});
+
+test('object argument - both encodeOptions,preprocessOptions', t => {
+	return new Promise(resolve => {
+		const base = '1x1';
+		const stream = gulp.src(`${base}.png`)
+			.pipe(squoosh({
+				encodeOptions: {
+					avif: {},
+					webp: {}
+				},
+				preprocessOptions: {
+					rotate: {
+						enabled: true,
+						numRotations: 2
+					}
+				}
+			}))
+			.pipe(gulp.dest('tmp'));
+		stream.on('end', () => {
+			t.true(fs.existsSync(`tmp/${base}.avif`));
+			t.true(fs.existsSync(`tmp/${base}.webp`));
+			resolve();
+		});
+	});
+});
+
+test('function argument contain', t => {
+	return new Promise(resolve => {
+		const base = 'cat_kotatsu_neko';
+		const stream = gulp.src(`${base}.png`)
+			.pipe(squoosh(src => ({
+				preprocessOptions: {
+					resize: {
+						enabled: true,
+						...src.contain(200)
+					}
+				}
+			})))
+			.pipe(gulp.dest('tmp'));
+		stream.on('end', () => {
+			t.true(fs.existsSync(`tmp/${base}.png`));
+			resolve();
+		});
+	});
+});
+
+test('function argument cover', t => {
+	return new Promise(resolve => {
+		const base = 'cat_kotatsu_neko';
+		const stream = gulp.src(`${base}.png`)
+			.pipe(squoosh(src => ({
+				preprocessOptions: {
+					resize: {
+						enabled: true,
+						...src.cover(200)
+					}
+				}
+			})))
+			.pipe(gulp.dest('tmp'));
+		stream.on('end', () => {
+			t.true(fs.existsSync(`tmp/${base}.png`));
 			resolve();
 		});
 	});

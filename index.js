@@ -2,32 +2,67 @@
 
 const through = require('through2');
 const PluginError = require('plugin-error');
-const squoosh = require('@squoosh/lib');
+const libSquoosh = require('@squoosh/lib');
 
 const PLUGIN_NAME = 'gulp-squoosh';
 
 // By default, encode to same image type.
 const DefaultEncodeOptions = Object.fromEntries(
-	Object.entries(squoosh.encoders).map(([key, encoder]) => {
+	Object.entries(libSquoosh.encoders).map(([key, encoder]) => {
 		const extension = `.${encoder.extension}`;
 		return [extension, Object.fromEntries([[key, {}]])];
 	})
 );
 
 /**
+ * @typedef {Object} BoxSize
+ * @property {number} width
+ * @property {number} height
+ */
+/**
+ * @typedef {Object} SquooshOptions
+ * @property {EncodeOptions} encodeOptions
+ * @property {PreprocessOptions} preprocessOptions
+ */
+/**
+ * @callback SquooshCallback
+ * @param {ImageSize} imageSize
+ * @returns {BoxSize}
+ */
+
+/* The following two options are as of libSquoosh's commit #955b2ac. */
+/**
+ * @typedef {Object} EncodeOptions
+ * @property {Object} [mozjpeg]
+ * @property {Object} [webp]
+ * @property {Object} [avif]
+ * @property {Object} [jxl]
+ * @property {Object} [wp2]
+ * @property {Object} [oxipng]
+ */
+/**
+ * @typedef {Object} PreprocessOptions
+ * @property {Object} [resize]
+ * @property {Object} [quant]
+ * @property {Object} [rotate]
+ */
+
+/**
  * Minify images with libSquoosh.
- * @function
- * @param {object} [encodeOptions] - An object with encoders to use, and their settings.
- * @param {object} [preprocessOptions] - An object with preprocessors to use, and their settings.
+ * @param {(EncodeOptions|SquooshOptions|SquooshCallback)} [encodeOptions] - An object with encoders to use, and their settings.
+ * @param {Object} [PreprocessOptions] - An object with preprocessors to use, and their settings.
  * @returns {NodeJS.ReadWriteStream}
  */
-module.exports = function (encodeOptions, preprocessOptions) {
-	if (typeof encodeOptions === 'object' &&
-		typeof preprocessOptions === 'undefined' &&
-		typeof encodeOptions.encodeOptions !== 'undefined' &&
-		typeof encodeOptions.preprocessOptions !== 'undefined') {
-		preprocessOptions = encodeOptions.preprocessOptions;
-		encodeOptions = encodeOptions.encodeOptions;
+function squoosh(encodeOptions, preprocessOptions) {
+	if (typeof encodeOptions === 'object' && typeof preprocessOptions === 'undefined') {
+		if (typeof encodeOptions.preprocessOptions !== 'undefined') {
+			preprocessOptions = encodeOptions.preprocessOptions;
+			delete encodeOptions.preprocessOptions;
+		}
+
+		if (typeof encodeOptions.encodeOptions !== 'undefined') {
+			encodeOptions = encodeOptions.encodeOptions;
+		}
 	}
 
 	const transform = async function (file, enc, cb) {
@@ -47,12 +82,20 @@ module.exports = function (encodeOptions, preprocessOptions) {
 			return;
 		}
 
-		encodeOptions = encodeOptions ? encodeOptions : DefaultEncodeOptions[file.extname];
-
 		try {
-			const imagePool = new squoosh.ImagePool();
+			const imagePool = new libSquoosh.ImagePool();
 			const image = imagePool.ingestImage(file.contents);
-			await image.decoded;
+			const decoded = await image.decoded;
+
+			if (typeof encodeOptions === 'function') {
+				/** @type {SquooshCallback} */
+				const callback = encodeOptions;
+				const result = callback(new ImageSize(decoded));
+				encodeOptions = result.encodeOptions || null;
+				preprocessOptions = result.preprocessOptions || null;
+			}
+
+			encodeOptions = (encodeOptions && Object.keys(encodeOptions).length > 0) ? encodeOptions : DefaultEncodeOptions[file.extname];
 
 			if (preprocessOptions) {
 				await image.preprocess(preprocessOptions);
@@ -79,4 +122,84 @@ module.exports = function (encodeOptions, preprocessOptions) {
 	};
 
 	return through.obj(transform);
+}
+
+/**
+ * @class
+ * @param {Object} bitmap
+ */
+function ImageSize({bitmap}) {
+	this.width = bitmap.width;
+	this.height = bitmap.height;
+}
+
+/**
+ * Scale to keep its aspect ratio while fitting within the specified bounding box.
+ * @param {number} targetWidth
+ * @param {number} [targetHeight]
+ * @returns {BoxSize}
+ */
+ImageSize.prototype.contain = function (targetWidth, targetHeight) {
+	if (typeof targetHeight === 'undefined') {
+		targetHeight = targetWidth;
+	}
+
+	const {width, height} = this;
+
+	const scaleW = targetWidth / width;
+	const scaleH = targetHeight / height;
+	const scale = (scaleW > scaleH) ? scaleH : scaleW;
+
+	return {
+		width: Math.round(width * scale),
+		height: Math.round(height * scale)
+	};
 };
+
+/**
+ * Acts like contain() but don't zoom if image is smaller than the specified bounding box.
+ * @param {number} targetWidth
+ * @param {number} [targetHeight]
+ * @returns {BoxSize}
+ */
+ImageSize.prototype.scaleDown = function (targetWidth, targetHeight) {
+	if (typeof targetHeight === 'undefined') {
+		targetHeight = targetWidth;
+	}
+
+	const {width, height} = this;
+
+	if (targetWidth > width && targetHeight > height) {
+		return {width, height};
+	}
+
+	return this.contain(targetWidth, targetHeight);
+};
+
+/**
+ * Scale to keep its aspect ratio while filling the specified bounding box.
+ * This method is not usable because libSquoosh doesn't provide crop functionality.
+ * @param {number} targetWidth
+ * @param {number} [targetHeight]
+ * @returns {BoxSize}
+ */
+ImageSize.prototype.cover = function (targetWidth, targetHeight) {
+	if (typeof targetHeight === 'undefined') {
+		targetHeight = targetWidth;
+	}
+
+	const {width, height} = this;
+
+	const scaleW = targetWidth / width;
+	const scaleH = targetHeight / height;
+	const scale = (scaleW > scaleH) ? scaleW : scaleH;
+
+	return {
+		width: Math.round(width * scale),
+		height: Math.round(height * scale)
+	};
+};
+
+squoosh.ImageSize = ImageSize;
+
+module.exports = squoosh;

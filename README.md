@@ -72,6 +72,56 @@ function images() {
 exports.images = images;
 ```
 
+### Resize using original image size
+
+```js
+const { src, dest } = require('gulp');
+const squoosh = require('gulp-libsquoosh');
+
+// resize image to half size of original.
+function images() {
+  return src('src/thumbnail/*.png')
+    .pipe(squoosh(src => ({
+      preprocessOptions: {
+        resize: {
+          enabled: true,
+          width: Math.round(src.width / 2),
+          height: Math.round(src.width / 2)
+        }
+      }
+    })))
+    .pipe(dest('dist/thumbnail'));
+}
+
+exports.images = images;
+```
+
+You can use some helper functions. It acts like as "object-fit" CSS property.
+
+- `contain(width, [height])`
+- `scaleDown(width, [height])`
+
+```js
+const { src, dest } = require('gulp');
+const squoosh = require('gulp-libsquoosh');
+
+// resize image to fit inside of 200x200 box.
+function images() {
+  return src('src/thumbnail/*.png')
+    .pipe(squoosh(src => ({
+      preprocessOptions: {
+        resize: {
+          enabled: true,
+          ...src.contain(200)
+        }
+      }
+    })))
+    .pipe(dest('dist/thumbnail'));
+}
+
+exports.images = images;
+```
+
 ### Quantize, Rotate image
 
 ```js
@@ -102,6 +152,33 @@ function images() {
         }
       }
     ))
+    .pipe(dest('dist/images'));
+}
+
+exports.images = images;
+```
+
+### Argument Style
+
+```js
+const { src, dest } = require('gulp');
+const squoosh = require('gulp-libsquoosh');
+
+function images() {
+  return src('src/images/**/*.png')
+    .pipe(squoosh({
+      encodeOptions: {
+        oxipng: {},
+        webp: {},
+        avif: {}
+      },
+      preprocessOptions: {
+        quant: {
+          enabled: true,
+          numColors: 256
+        }
+      }
+    }))
     .pipe(dest('dist/images'));
 }
 
