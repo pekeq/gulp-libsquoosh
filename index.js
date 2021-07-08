@@ -4,7 +4,7 @@ const through = require('through2');
 const PluginError = require('plugin-error');
 const libSquoosh = require('@squoosh/lib');
 
-const PLUGIN_NAME = 'gulp-squoosh';
+const PLUGIN_NAME = 'gulp-libsquoosh';
 
 /**
  * By default, encode to same image type.
