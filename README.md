@@ -1,6 +1,6 @@
 # gulp-libsquoosh
 
-Minify images with [libSquoosh](https://github.com/GoogleChromeLabs/squoosh/tree/dev/libsquoosh).
+Minify images with [libSquoosh](https://github.com/GoogleChromeLabs/squoosh/tree/dev/libsquoosh), the [Squoosh](https://squoosh.app/) API for Node.
 
 ## Install
 
