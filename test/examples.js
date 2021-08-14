@@ -3,6 +3,7 @@
 'use strict';
 
 const test = require('ava');
+const del = require('del');
 
 test.beforeEach(() => {
 	const fs = require('fs');
@@ -16,10 +17,9 @@ test.beforeEach(() => {
 });
 
 test.afterEach(() => {
-	const fs = require('fs');
 	process.chdir(__dirname);
-	fs.rmdirSync('src', { recursive: true });
-	fs.rmdirSync('dist', { recursive: true });
+	del('src');
+	del('dist');
 });
 
 function exists(file) {
