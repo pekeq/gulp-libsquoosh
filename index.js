@@ -6,6 +6,8 @@ const libSquoosh = require('@squoosh/lib');
 
 const PLUGIN_NAME = 'gulp-libsquoosh';
 
+const imagePool = new libSquoosh.ImagePool();
+
 /**
  * By default, encode to same image type.
  * @typedef {[extension:string]: Object}
@@ -89,7 +91,6 @@ function squoosh(encodeOptions, preprocessOptions) {
 		let currentPreprocessOptions = preprocessOptions;
 
 		try {
-			const imagePool = new libSquoosh.ImagePool();
 			const image = imagePool.ingestImage(file.contents);
 			const decoded = await image.decoded;
 
@@ -117,8 +118,6 @@ function squoosh(encodeOptions, preprocessOptions) {
 				this.push(newfile);
 			});
 			await Promise.all(tasks);
-
-			await imagePool.close();
 		} catch (error) {
 			cb(new PluginError(PLUGIN_NAME, error, {filename: file.path}));
 			return;
