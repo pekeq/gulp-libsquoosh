@@ -10,7 +10,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "test": "xo && ava --serial --verbose --timeout 3m",
+    "test": "xo && ava --verbose --timeout 5m",
     "types": "npx typescript index.js --declaration --allowJs --emitDeclarationOnly --outDir ."
   },
   "repository": {

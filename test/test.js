@@ -16,64 +16,64 @@ test.beforeEach(t => {
 	del.sync(path.join(__dirname, 'tmp'));
 });
 
-test('basic usage', t => {
+test.serial('basic usage', t => {
 	return new Promise(resolve => {
-		const file = '1x1.jpg';
+		const file = '80x80.jpg';
 		const stream = gulp.src(file)
 			.pipe(squoosh())
 			.pipe(gulp.dest('tmp'));
 		stream.on('finish', () => {
-			t.true(fs.existsSync('tmp/1x1.jpg'));
-			t.false(fs.existsSync('tmp/1x1.webp'));
+			t.true(fs.existsSync('tmp/80x80.jpg'));
+			t.false(fs.existsSync('tmp/80x80.webp'));
 			resolve();
 		});
 	});
 });
 
-test('array src', t => {
+test.serial('array src', t => {
 	return new Promise(resolve => {
-		const stream = gulp.src(['1x1.png', 'cat_kotatsu_neko.png'])
+		const stream = gulp.src(['80x80.png', 'cat_kotatsu_neko.png'])
 			.pipe(squoosh())
 			.pipe(gulp.dest('tmp'));
 		stream.on('finish', () => {
-			t.true(fs.existsSync('tmp/1x1.png'));
+			t.true(fs.existsSync('tmp/80x80.png'));
 			t.true(fs.existsSync('tmp/cat_kotatsu_neko.png'));
 			resolve();
 		});
 	});
 });
 
-test('wildcard src', t => {
+test.serial('wildcard src', t => {
 	return new Promise(resolve => {
 		const stream = gulp.src(['*.png'])
 			.pipe(squoosh())
 			.pipe(gulp.dest('tmp'));
 		stream.on('finish', () => {
-			t.true(fs.existsSync('tmp/1x1.png'));
+			t.true(fs.existsSync('tmp/80x80.png'));
 			t.true(fs.existsSync('tmp/cat_kotatsu_neko.png'));
 			resolve();
 		});
 	});
 });
 
-test('squoosh to same format', t => {
+test.serial('squoosh to same format', t => {
 	return new Promise(resolve => {
-		const file = '1x1.png';
+		const file = '80x80.png';
 		const stream = gulp.src(file)
 			.pipe(squoosh({
 				oxipng: {}
 			}))
 			.pipe(gulp.dest('tmp'));
 		stream.on('finish', () => {
-			t.true(fs.existsSync('tmp/1x1.png'));
+			t.true(fs.existsSync('tmp/80x80.png'));
 			resolve();
 		});
 	});
 });
 
-test('squoosh to webp, avif', t => {
+test.serial('squoosh to webp, avif', t => {
 	return new Promise(resolve => {
-		const file = '1x1.png';
+		const file = '80x80.png';
 		const stream = gulp.src(file)
 			.pipe(squoosh({
 				avif: {},
@@ -81,17 +81,17 @@ test('squoosh to webp, avif', t => {
 			}))
 			.pipe(gulp.dest('tmp'));
 		stream.on('finish', () => {
-			t.true(fs.existsSync('tmp/1x1.avif'));
-			t.true(fs.existsSync('tmp/1x1.webp'));
-			t.false(fs.existsSync('tmp/1x1.png'));
+			t.true(fs.existsSync('tmp/80x80.avif'));
+			t.true(fs.existsSync('tmp/80x80.webp'));
+			t.false(fs.existsSync('tmp/80x80.png'));
 			resolve();
 		});
 	});
 });
 
-test('passthrough unsupported format', t => {
+test.serial('passthrough unsupported format', t => {
 	return new Promise(resolve => {
-		const file = '1x1.gif';
+		const file = '80x80.gif';
 		const stream = gulp.src(file)
 			.pipe(squoosh({
 				avif: {},
@@ -99,15 +99,15 @@ test('passthrough unsupported format', t => {
 			}))
 			.pipe(gulp.dest('tmp'));
 		stream.on('finish', () => {
-			t.true(fs.existsSync('tmp/1x1.gif'));
-			t.false(fs.existsSync('tmp/1x1.avif'));
-			t.false(fs.existsSync('tmp/1x1.webp'));
+			t.true(fs.existsSync('tmp/80x80.gif'));
+			t.false(fs.existsSync('tmp/80x80.avif'));
+			t.false(fs.existsSync('tmp/80x80.webp'));
 			resolve();
 		});
 	});
 });
 
-test('quantize and rotate image', t => {
+test.serial('quantize and rotate image', t => {
 	return new Promise(resolve => {
 		const base = 'cat_kotatsu_neko';
 		const stream = gulp.src(`${base}.png`)
@@ -137,9 +137,9 @@ test('quantize and rotate image', t => {
 	});
 });
 
-test('object argument - encodeOptions only', t => {
+test.serial('object argument - encodeOptions only', t => {
 	return new Promise(resolve => {
-		const file = '1x1.png';
+		const file = '80x80.png';
 		const stream = gulp.src(file)
 			.pipe(squoosh({
 				encodeOptions: {
@@ -148,13 +148,13 @@ test('object argument - encodeOptions only', t => {
 			}))
 			.pipe(gulp.dest('tmp'));
 		stream.on('finish', () => {
-			t.true(fs.existsSync('tmp/1x1.webp'));
+			t.true(fs.existsSync('tmp/80x80.webp'));
 			resolve();
 		});
 	});
 });
 
-test('object argument - preprocessOptions only', t => {
+test.serial('object argument - preprocessOptions only', t => {
 	return new Promise(resolve => {
 		const base = 'cat_kotatsu_neko';
 		const stream = gulp.src(`${base}.png`)
@@ -174,9 +174,9 @@ test('object argument - preprocessOptions only', t => {
 	});
 });
 
-test('object argument - both encodeOptions,preprocessOptions', t => {
+test.serial('object argument - both encodeOptions,preprocessOptions', t => {
 	return new Promise(resolve => {
-		const base = '1x1';
+		const base = '80x80';
 		const stream = gulp.src(`${base}.png`)
 			.pipe(squoosh({
 				encodeOptions: {
@@ -199,7 +199,7 @@ test('object argument - both encodeOptions,preprocessOptions', t => {
 	});
 });
 
-test('function argument contain', t => {
+test.serial('function argument contain', t => {
 	return new Promise(resolve => {
 		const base = 'cat_kotatsu_neko';
 		const stream = gulp.src(`${base}.png`)
@@ -219,7 +219,7 @@ test('function argument contain', t => {
 	});
 });
 
-test('function argument cover', t => {
+test.serial('function argument cover', t => {
 	return new Promise(resolve => {
 		const base = 'cat_kotatsu_neko';
 		const stream = gulp.src(`${base}.png`)
@@ -239,7 +239,7 @@ test('function argument cover', t => {
 	});
 });
 
-test('more complex', t => {
+test.serial('more complex', t => {
 	return new Promise(resolve => {
 		const base = 'cat_kotatsu_neko';
 		const stream = gulp.src(['*.png', '*.jpg'])
@@ -268,9 +268,9 @@ test('more complex', t => {
 		stream.on('finish', () => {
 			t.false(fs.existsSync(`tmp/${base}.png`));
 			t.true(fs.existsSync(`tmp/${base}.avif`));
-			t.false(fs.existsSync('tmp/1x1.png'));
-			t.true(fs.existsSync('tmp/1x1.avif'));
-			t.true(fs.existsSync('tmp/1x1.jxl'));
+			t.false(fs.existsSync('tmp/80x80.png'));
+			t.true(fs.existsSync('tmp/80x80.avif'));
+			t.true(fs.existsSync('tmp/80x80.jxl'));
 			resolve();
 		});
 	});
