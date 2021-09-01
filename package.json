@@ -1,6 +1,6 @@
 {
   "name": "gulp-libsquoosh",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "Minify images with libSquoosh, the Squoosh API for Node.",
   "public": true,
   "main": "index.js",
