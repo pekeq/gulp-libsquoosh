@@ -3,27 +3,32 @@
 'use strict';
 
 const test = require('ava');
+const fs = require('fs');
 const del = require('del');
 
-test.beforeEach(() => {
-	const fs = require('fs');
+const basedir = '_examples';
+const srcdir = `${basedir}/src`;
+const dstdir = `${basedir}/dst`;
+
+test.before(() => {
 	process.chdir(__dirname);
-	fs.mkdirSync('src/images', { recursive: true });
-	fs.mkdirSync('src/thumbnail', { recursive: true });
-	fs.copyFileSync('80x80.png', 'src/images/test1.png');
-	fs.copyFileSync('80x80.jpg', 'src/images/test2.jpg');
-	fs.copyFileSync('80x80.png', 'src/thumbnail/test1.png');
-	fs.copyFileSync('80x80.jpg', 'src/thumbnail/test2.png');
+	fs.mkdirSync(`${srcdir}/images`, { recursive: true });
+	fs.mkdirSync(`${srcdir}/thumbnail`, { recursive: true });
+	fs.copyFileSync('80x80.png', `${srcdir}/images/test1.png`);
+	fs.copyFileSync('80x80.jpg', `${srcdir}/images/test2.jpg`);
+	fs.copyFileSync('80x80.png', `${srcdir}/thumbnail/test1.png`);
+	fs.copyFileSync('80x80.jpg', `${srcdir}/thumbnail/test2.png`);
 });
 
-test.afterEach(() => {
-	process.chdir(__dirname);
-	del('src');
-	del('dist');
+test.after(async () => {
+	await del(basedir);
+});
+
+test.afterEach(async () => {
+	await del(dstdir);
 });
 
 function exists(file) {
-	const fs = require('fs');
 	return fs.existsSync(file);
 }
 
@@ -34,9 +39,9 @@ test.serial('Basic', t => {
 
 		// minify images into same format
 		function images() {
-			return src('src/images/**')
+			return src(`${srcdir}/images/**`)
 				.pipe(squoosh())
-				.pipe(dest('dist/images'));
+				.pipe(dest(`${dstdir}/images`));
 		}
 
 		series(images)((error) => {
@@ -44,8 +49,8 @@ test.serial('Basic', t => {
 				reject(error);
 			}
 
-			t.true(exists('dist/images/test1.png'));
-			t.true(exists('dist/images/test2.jpg'));
+			t.true(exists(`${dstdir}/images/test1.png`));
+			t.true(exists(`${dstdir}/images/test2.jpg`));
 			resolve();
 		});
 	});
@@ -58,7 +63,7 @@ test.serial('Convert to multiple image formats', t => {
 
 		// minify png into png, webp and avif format
 		function images() {
-			return src('src/images/**/*.png')
+			return src(`${srcdir}/images/**/*.png`)
 				.pipe(
 					squoosh({
 						oxipng: {},
@@ -66,7 +71,7 @@ test.serial('Convert to multiple image formats', t => {
 						avif: {},
 					})
 				)
-				.pipe(dest('dist/images'));
+				.pipe(dest(`${dstdir}/images`));
 		}
 
 		series(images)((error) => {
@@ -74,9 +79,9 @@ test.serial('Convert to multiple image formats', t => {
 				reject(error);
 			}
 
-			t.true(exists('dist/images/test1.png'));
-			t.true(exists('dist/images/test1.webp'));
-			t.true(exists('dist/images/test1.avif'));
+			t.true(exists(`${dstdir}/images/test1.png`));
+			t.true(exists(`${dstdir}/images/test1.webp`));
+			t.true(exists(`${dstdir}/images/test1.avif`));
 			resolve();
 		});
 	});
@@ -89,7 +94,7 @@ test.serial('Resizing image', t => {
 
 		// resize image to width 200px with keeping aspect ratio.
 		function images() {
-			return src('src/thumbnail/*.png')
+			return src(`${srcdir}/thumbnail/*.png`)
 				.pipe(
 					squoosh(
 						null, // use default
@@ -103,7 +108,7 @@ test.serial('Resizing image', t => {
 						}
 					)
 				)
-				.pipe(dest('dist/thumbnail'));
+				.pipe(dest(`${dstdir}/thumbnail`));
 		}
 
 		series(images)((error) => {
@@ -111,7 +116,7 @@ test.serial('Resizing image', t => {
 				reject(error);
 			}
 
-			t.true(exists('dist/thumbnail/test1.png'));
+			t.true(exists(`${dstdir}/thumbnail/test1.png`));
 			resolve();
 		});
 	});
@@ -124,7 +129,7 @@ test.serial('Specify encodeOptions, preprocessOptions in one object argument.', 
 
 		// squoosh({encodeOptions:..., preprocessOptions:...})
 		function images() {
-			return src('src/images/**')
+			return src(`${srcdir}/images/**`)
 				.pipe(
 					squoosh({
 						encodeOptions: {
@@ -139,7 +144,7 @@ test.serial('Specify encodeOptions, preprocessOptions in one object argument.', 
 						},
 					})
 				)
-				.pipe(dest('dist/images'));
+				.pipe(dest(`${dstdir}/images`));
 		}
 
 		series(images)((error) => {
@@ -147,9 +152,9 @@ test.serial('Specify encodeOptions, preprocessOptions in one object argument.', 
 				reject(error);
 			}
 
-			t.true(exists('dist/images/test1.avif'));
-			t.true(exists('dist/images/test1.webp'));
-			t.false(exists('dist/images/test1.png'));
+			t.true(exists(`${dstdir}/images/test1.avif`));
+			t.true(exists(`${dstdir}/images/test1.webp`));
+			t.false(exists(`${dstdir}/images/test1.png`));
 			resolve();
 		});
 	});
@@ -162,7 +167,7 @@ test.serial('Resize using original image size', t => {
 
 		// resize image to half size of original.
 		function images() {
-			return src('src/thumbnail/*.png')
+			return src(`${srcdir}/thumbnail/*.png`)
 				.pipe(
 					squoosh((src) => ({
 						preprocessOptions: {
@@ -174,7 +179,7 @@ test.serial('Resize using original image size', t => {
 						},
 					}))
 				)
-				.pipe(dest('dist/thumbnail'));
+				.pipe(dest(`${dstdir}/thumbnail`));
 		}
 
 		series(images)((error) => {
@@ -182,7 +187,7 @@ test.serial('Resize using original image size', t => {
 				reject(error);
 			}
 
-			t.true(exists('dist/thumbnail/test1.png'));
+			t.true(exists(`${dstdir}/thumbnail/test1.png`));
 			resolve();
 		});
 	});
@@ -195,7 +200,7 @@ test.serial('Resize using original image size (with helper function)', t => {
 
 		// resize image to fit inside of 200x200 box.
 		function images() {
-			return src('src/thumbnail/*.png')
+			return src(`${srcdir}/thumbnail/*.png`)
 				.pipe(
 					squoosh((src) => ({
 						preprocessOptions: {
@@ -206,7 +211,7 @@ test.serial('Resize using original image size (with helper function)', t => {
 						},
 					}))
 				)
-				.pipe(dest('dist/thumbnail'));
+				.pipe(dest(`${dstdir}/thumbnail`));
 		}
 
 		series(images)((error) => {
@@ -214,7 +219,7 @@ test.serial('Resize using original image size (with helper function)', t => {
 				reject(error);
 			}
 
-			t.true(exists('dist/thumbnail/test1.png'));
+			t.true(exists(`${dstdir}/thumbnail/test1.png`));
 			resolve();
 		});
 	});
@@ -227,7 +232,7 @@ test.serial('Quantize, Rotate image', t => {
 
 		// quantize, rotate and minify png into png, webp and avif format
 		function images() {
-			return src('src/images/**/*.png')
+			return src(`${srcdir}/images/**/*.png`)
 				.pipe(
 					squoosh(
 						{
@@ -251,7 +256,7 @@ test.serial('Quantize, Rotate image', t => {
 						}
 					)
 				)
-				.pipe(dest('dist/images'));
+				.pipe(dest(`${dstdir}/images`));
 		}
 
 		series(images)((error) => {
@@ -259,7 +264,7 @@ test.serial('Quantize, Rotate image', t => {
 				reject(error);
 			}
 
-			t.true(exists('dist/images/test1.png'));
+			t.true(exists(`${dstdir}/images/test1.png`));
 			resolve();
 		});
 	});
@@ -272,7 +277,7 @@ test.serial('More complex', t => {
 		const squoosh = require('..');
 
 		function images() {
-			return src(['src/images/**/*.{png,jpg,webp}'])
+			return src([`${srcdir}/images/**/*.{png,jpg,webp}`])
 				.pipe(
 					squoosh((src) => {
 						const extname = path.extname(src.path);
@@ -306,7 +311,7 @@ test.serial('More complex', t => {
 						return options;
 					})
 				)
-				.pipe(dest('dist/images'));
+				.pipe(dest(`${dstdir}/images`));
 		}
 
 		series(images)(error => {
@@ -314,11 +319,10 @@ test.serial('More complex', t => {
 				reject(error);
 			}
 
-			t.true(exists('dist/images/test1.avif'));
-			t.true(exists('dist/images/test2.jpg'));
-			t.true(exists('dist/images/test2.jxl'));
+			t.true(exists(`${dstdir}/images/test1.avif`));
+			t.true(exists(`${dstdir}/images/test2.jpg`));
+			t.true(exists(`${dstdir}/images/test2.jxl`));
 			resolve();
 		});
 	});
 });
-

@@ -10,10 +10,15 @@ const del = require('del');
 const squoosh = require('..');
 
 const dirname = __dirname;
+const dstdir = '_test';
 
 test.beforeEach(t => {
 	process.chdir(__dirname);
-	del.sync(path.join(__dirname, 'tmp'));
+	del.sync(dstdir);
+});
+
+test.afterEach(() => {
+	del.sync(dstdir);
 });
 
 test.serial('basic usage', t => {
@@ -21,10 +26,10 @@ test.serial('basic usage', t => {
 		const file = '80x80.jpg';
 		const stream = gulp.src(file)
 			.pipe(squoosh())
-			.pipe(gulp.dest('tmp'));
+			.pipe(gulp.dest(dstdir));
 		stream.on('finish', () => {
-			t.true(fs.existsSync('tmp/80x80.jpg'));
-			t.false(fs.existsSync('tmp/80x80.webp'));
+			t.true(fs.existsSync(`${dstdir}/80x80.jpg`));
+			t.false(fs.existsSync(`${dstdir}/80x80.webp`));
 			resolve();
 		});
 	});
@@ -34,10 +39,10 @@ test.serial('array src', t => {
 	return new Promise(resolve => {
 		const stream = gulp.src(['80x80.png', 'cat_kotatsu_neko.png'])
 			.pipe(squoosh())
-			.pipe(gulp.dest('tmp'));
+			.pipe(gulp.dest(dstdir));
 		stream.on('finish', () => {
-			t.true(fs.existsSync('tmp/80x80.png'));
-			t.true(fs.existsSync('tmp/cat_kotatsu_neko.png'));
+			t.true(fs.existsSync(`${dstdir}/80x80.png`));
+			t.true(fs.existsSync(`${dstdir}/cat_kotatsu_neko.png`));
 			resolve();
 		});
 	});
@@ -47,10 +52,10 @@ test.serial('wildcard src', t => {
 	return new Promise(resolve => {
 		const stream = gulp.src(['*.png'])
 			.pipe(squoosh())
-			.pipe(gulp.dest('tmp'));
+			.pipe(gulp.dest(dstdir));
 		stream.on('finish', () => {
-			t.true(fs.existsSync('tmp/80x80.png'));
-			t.true(fs.existsSync('tmp/cat_kotatsu_neko.png'));
+			t.true(fs.existsSync(`${dstdir}/80x80.png`));
+			t.true(fs.existsSync(`${dstdir}/cat_kotatsu_neko.png`));
 			resolve();
 		});
 	});
@@ -63,9 +68,9 @@ test.serial('squoosh to same format', t => {
 			.pipe(squoosh({
 				oxipng: {}
 			}))
-			.pipe(gulp.dest('tmp'));
+			.pipe(gulp.dest(dstdir));
 		stream.on('finish', () => {
-			t.true(fs.existsSync('tmp/80x80.png'));
+			t.true(fs.existsSync(`${dstdir}/80x80.png`));
 			resolve();
 		});
 	});
@@ -79,11 +84,11 @@ test.serial('squoosh to webp, avif', t => {
 				avif: {},
 				webp: {}
 			}))
-			.pipe(gulp.dest('tmp'));
+			.pipe(gulp.dest(dstdir));
 		stream.on('finish', () => {
-			t.true(fs.existsSync('tmp/80x80.avif'));
-			t.true(fs.existsSync('tmp/80x80.webp'));
-			t.false(fs.existsSync('tmp/80x80.png'));
+			t.true(fs.existsSync(`${dstdir}/80x80.avif`));
+			t.true(fs.existsSync(`${dstdir}/80x80.webp`));
+			t.false(fs.existsSync(`${dstdir}/80x80.png`));
 			resolve();
 		});
 	});
@@ -97,11 +102,11 @@ test.serial('passthrough unsupported format', t => {
 				avif: {},
 				webp: {}
 			}))
-			.pipe(gulp.dest('tmp'));
+			.pipe(gulp.dest(dstdir));
 		stream.on('finish', () => {
-			t.true(fs.existsSync('tmp/80x80.gif'));
-			t.false(fs.existsSync('tmp/80x80.avif'));
-			t.false(fs.existsSync('tmp/80x80.webp'));
+			t.true(fs.existsSync(`${dstdir}/80x80.gif`));
+			t.false(fs.existsSync(`${dstdir}/80x80.avif`));
+			t.false(fs.existsSync(`${dstdir}/80x80.webp`));
 			resolve();
 		});
 	});
@@ -127,11 +132,11 @@ test.serial('quantize and rotate image', t => {
 					numRotations: 1
 				}
 			}))
-			.pipe(gulp.dest('tmp'));
+			.pipe(gulp.dest(dstdir));
 		stream.on('finish', () => {
-			t.true(fs.existsSync(`tmp/${base}.png`));
-			t.true(fs.existsSync(`tmp/${base}.avif`));
-			t.true(fs.existsSync(`tmp/${base}.webp`));
+			t.true(fs.existsSync(`${dstdir}/${base}.png`));
+			t.true(fs.existsSync(`${dstdir}/${base}.avif`));
+			t.true(fs.existsSync(`${dstdir}/${base}.webp`));
 			resolve();
 		});
 	});
@@ -146,9 +151,9 @@ test.serial('object argument - encodeOptions only', t => {
 					webp: {}
 				}
 			}))
-			.pipe(gulp.dest('tmp'));
+			.pipe(gulp.dest(dstdir));
 		stream.on('finish', () => {
-			t.true(fs.existsSync('tmp/80x80.webp'));
+			t.true(fs.existsSync(`${dstdir}/80x80.webp`));
 			resolve();
 		});
 	});
@@ -166,9 +171,9 @@ test.serial('object argument - preprocessOptions only', t => {
 					}
 				}
 			}))
-			.pipe(gulp.dest('tmp'));
+			.pipe(gulp.dest(dstdir));
 		stream.on('finish', () => {
-			t.true(fs.existsSync(`tmp/${base}.png`));
+			t.true(fs.existsSync(`${dstdir}/${base}.png`));
 			resolve();
 		});
 	});
@@ -190,10 +195,10 @@ test.serial('object argument - both encodeOptions,preprocessOptions', t => {
 					}
 				}
 			}))
-			.pipe(gulp.dest('tmp'));
+			.pipe(gulp.dest(dstdir));
 		stream.on('finish', () => {
-			t.true(fs.existsSync(`tmp/${base}.avif`));
-			t.true(fs.existsSync(`tmp/${base}.webp`));
+			t.true(fs.existsSync(`${dstdir}/${base}.avif`));
+			t.true(fs.existsSync(`${dstdir}/${base}.webp`));
 			resolve();
 		});
 	});
@@ -211,9 +216,9 @@ test.serial('function argument contain', t => {
 					}
 				}
 			})))
-			.pipe(gulp.dest('tmp'));
+			.pipe(gulp.dest(dstdir));
 		stream.on('finish', () => {
-			t.true(fs.existsSync(`tmp/${base}.png`));
+			t.true(fs.existsSync(`${dstdir}/${base}.png`));
 			resolve();
 		});
 	});
@@ -231,9 +236,9 @@ test.serial('function argument cover', t => {
 					}
 				}
 			})))
-			.pipe(gulp.dest('tmp'));
+			.pipe(gulp.dest(dstdir));
 		stream.on('finish', () => {
-			t.true(fs.existsSync(`tmp/${base}.png`));
+			t.true(fs.existsSync(`${dstdir}/${base}.png`));
 			resolve();
 		});
 	});
@@ -264,13 +269,13 @@ test.serial('more complex', t => {
 
 				return options;
 			}))
-			.pipe(gulp.dest('tmp'));
+			.pipe(gulp.dest(dstdir));
 		stream.on('finish', () => {
-			t.false(fs.existsSync(`tmp/${base}.png`));
-			t.true(fs.existsSync(`tmp/${base}.avif`));
-			t.false(fs.existsSync('tmp/80x80.png'));
-			t.true(fs.existsSync('tmp/80x80.avif'));
-			t.true(fs.existsSync('tmp/80x80.jxl'));
+			t.false(fs.existsSync(`${dstdir}/${base}.png`));
+			t.true(fs.existsSync(`${dstdir}/${base}.avif`));
+			t.false(fs.existsSync(`${dstdir}/80x80.png`));
+			t.true(fs.existsSync(`${dstdir}/80x80.avif`));
+			t.true(fs.existsSync(`${dstdir}/80x80.jxl`));
 			resolve();
 		});
 	});

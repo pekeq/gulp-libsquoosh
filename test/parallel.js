@@ -9,42 +9,56 @@ const del = require('del');
 const squoosh = require('..');
 
 const dirname = __dirname;
+const basedir = '_parallel';
 
 test.before(t => {
 	process.chdir(dirname);
-	fs.copyFileSync('80x80.jpg', 'test1.jpg');
-	fs.copyFileSync('80x80.png', 'test2.png');
+	del.sync(basedir);
+	fs.mkdirSync(basedir);
+	fs.copyFileSync('80x80.jpg', `${basedir}/test1.jpg`);
+	fs.copyFileSync('80x80.png', `${basedir}/test2.png`);
 });
 
 test.after(t => {
-	del('test1.jpg');
-	del('test2.png');
-	del('tmp');
+	del.sync(basedir);
 });
 
 test.serial('run parallel to check "out of memory" error', t => {
 	return new Promise((resolve, reject) => {
+		let job = 1;
 		function images() {
-			return gulp.src(['test1.jpg', 'test2.png'])
-				.pipe(squoosh({mozjpeg: {}, webp: {}, oxipng: {}, avif: {}}))
-				.pipe(gulp.dest('tmp'));
+			const thisjob = job++;
+			return gulp.src([`${basedir}/test1.jpg`, `${basedir}/test2.png`])
+				.pipe(squoosh(
+					{mozjpeg: {}, webp: {}, oxipng: {}, avif: {}},
+					{
+						resize: {
+							enabled: true,
+							// Specify either width or height
+							// When you specify width and height, image resized to exact size you specified
+							width: 20
+						}
+					}
+				))
+				.pipe(gulp.dest(`${basedir}/${thisjob}`));
 		}
 
 		gulp.parallel(
-			images, images, images, images, images, images, images, images, images, images, images, images, images
+			images, images, images, images, images, images, images, images, images, images,
+			images, images, images, images, images, images, images, images, images, images
 		)(error => {
 			if (error) {
 				reject(error);
 			}
 
-			t.true(fs.existsSync('tmp/test1.jpg'));
-			t.true(fs.existsSync('tmp/test1.png'));
-			t.true(fs.existsSync('tmp/test1.webp'));
-			t.true(fs.existsSync('tmp/test1.avif'));
-			t.true(fs.existsSync('tmp/test2.jpg'));
-			t.true(fs.existsSync('tmp/test2.png'));
-			t.true(fs.existsSync('tmp/test2.webp'));
-			t.true(fs.existsSync('tmp/test2.avif'));
+			t.true(fs.existsSync(`${basedir}/20/test1.jpg`));
+			t.true(fs.existsSync(`${basedir}/20/test1.png`));
+			t.true(fs.existsSync(`${basedir}/20/test1.webp`));
+			t.true(fs.existsSync(`${basedir}/20/test1.avif`));
+			t.true(fs.existsSync(`${basedir}/20/test2.jpg`));
+			t.true(fs.existsSync(`${basedir}/20/test2.png`));
+			t.true(fs.existsSync(`${basedir}/20/test2.webp`));
+			t.true(fs.existsSync(`${basedir}/20/test2.avif`));
 			resolve();
 		});
 	});
