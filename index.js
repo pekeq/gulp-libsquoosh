@@ -1,12 +1,13 @@
 'use strict';
 
+const os = require('os');
 const through = require('through2');
 const PluginError = require('plugin-error');
 const libSquoosh = require('@squoosh/lib');
 
 const PLUGIN_NAME = 'gulp-libsquoosh';
 
-const imagePool = new libSquoosh.ImagePool();
+const imagePool = new libSquoosh.ImagePool(os.cpus().length);
 
 /**
  * By default, encode to same image type.
