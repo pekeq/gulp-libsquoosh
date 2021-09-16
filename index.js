@@ -4,10 +4,12 @@ const os = require('os');
 const through = require('through2');
 const PluginError = require('plugin-error');
 const libSquoosh = require('@squoosh/lib');
+const debounce = require('lodash.debounce');
 
 const PLUGIN_NAME = 'gulp-libsquoosh';
 
 let imagePool;
+let imagePoolLock = 0;
 
 /**
  * By default, encode to same image type.
@@ -54,6 +56,19 @@ const DefaultEncodeOptions = Object.fromEntries(
  */
 
 /**
+ * Close ImagePool instance when idle.
+ */
+const closeImagePool = debounce(() => {
+	// Prevent calling imagePool.close() repeatedly
+	// to avoid wasm memory error (in some circumstance)
+	(async () => {
+		await imagePool.close();
+		imagePool = null;
+		imagePoolLock = 0;
+	})();
+}, 500);
+
+/**
  * Minify images with libSquoosh.
  * @param {(EncodeOptions|SquooshOptions|SquooshCallback)} [encodeOptions] - An object with encoders to use, and their settings.
  * @param {Object} [PreprocessOptions] - An object with preprocessors to use, and their settings.
@@ -92,6 +107,8 @@ function squoosh(encodeOptions, preprocessOptions) {
 		let currentPreprocessOptions = preprocessOptions;
 
 		try {
+			imagePoolLock++;
+			closeImagePool.cancel(); // Stop debounce timer
 			if (!imagePool) {
 				imagePool = new libSquoosh.ImagePool(os.cpus().length);
 			}
@@ -126,6 +143,11 @@ function squoosh(encodeOptions, preprocessOptions) {
 		} catch (error) {
 			cb(new PluginError(PLUGIN_NAME, error, {filename: file.path}));
 			return;
+		} finally {
+			imagePoolLock--;
+			if (imagePoolLock < 1) {
+				closeImagePool();
+			}
 		}
 
 		cb();
