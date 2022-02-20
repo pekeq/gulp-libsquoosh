@@ -10,7 +10,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "test": "xo && ava --verbose --timeout 5m",
+    "test": "xo && ava --verbose --no-worker-threads --timeout 5m",
     "types": "npx typescript index.js --declaration --allowJs --emitDeclarationOnly --outDir ."
   },
   "repository": {
@@ -48,7 +48,7 @@
     "through2": "^4.0.2"
   },
   "devDependencies": {
-    "ava": "^3.15.0",
+    "ava": "^4.0.1",
     "del": "^6.0.0",
     "gulp": "^4.0.2",
     "xo": "^0.39.1"
