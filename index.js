@@ -12,6 +12,7 @@ const PLUGIN_NAME = 'gulp-libsquoosh';
  */
 let imagePool;
 
+const NUM_PARALLEL = os.cpus().length > 1 ? 2 : 1;
 const queue = [];
 let running = 0;
 
@@ -87,7 +88,7 @@ function squoosh(encodeOptions, preprocessOptions) {
 	 */
 	const encode = async function (file) {
 		if (!imagePool) {
-			imagePool = new libSquoosh.ImagePool(os.cpus().length);
+			imagePool = new libSquoosh.ImagePool(NUM_PARALLEL);
 		}
 
 		let currentEncodeOptions = encodeOptions;
