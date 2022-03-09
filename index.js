@@ -4,7 +4,6 @@ const os = require('os');
 const through = require('through2');
 const PluginError = require('plugin-error');
 const libSquoosh = require('@squoosh/lib');
-const debounce = require('lodash.debounce');
 
 const PLUGIN_NAME = 'gulp-libsquoosh';
 
@@ -12,8 +11,13 @@ const PLUGIN_NAME = 'gulp-libsquoosh';
  * @type {libSquoosh.ImagePool}
  */
 let imagePool;
-let imagePoolLock = 0;
-const pendingFiles = [];
+
+const queue = [];
+let running = 0;
+
+/**
+ * @typedef { import('vinyl') } File
+ */
 
 /**
  * By default, encode to same image type.
@@ -60,19 +64,6 @@ const DefaultEncodeOptions = Object.fromEntries(
  */
 
 /**
- * Close ImagePool instance when idle.
- */
-const closeImagePool = debounce(() => {
-	// Prevent calling imagePool.close() repeatedly
-	// to avoid wasm memory error (in some circumstance)
-	(async () => {
-		await imagePool.close();
-		imagePool = null;
-		imagePoolLock = 0;
-	})();
-}, 500);
-
-/**
  * Minify images with libSquoosh.
  * @param {(EncodeOptions|SquooshOptions|SquooshCallback)} [encodeOptions] - An object with encoders to use, and their settings.
  * @param {Object} [PreprocessOptions] - An object with preprocessors to use, and their settings.
@@ -90,6 +81,10 @@ function squoosh(encodeOptions, preprocessOptions) {
 		}
 	}
 
+	/**
+	 * @param {File} file
+	 * @returns {File[]}
+	 */
 	const encode = async function (file) {
 		if (!imagePool) {
 			imagePool = new libSquoosh.ImagePool(os.cpus().length);
@@ -117,22 +112,26 @@ function squoosh(encodeOptions, preprocessOptions) {
 
 		await image.encode(currentEncodeOptions);
 
-		const files = [];
+		const encodedFiles = [];
 		const tasks = Object.values(image.encodedWith).map(async encoder => {
 			const encodedImage = await encoder;
 			const newfile = file.clone({contents: false});
 			newfile.contents = Buffer.from(encodedImage.binary);
 			newfile.extname = `.${encodedImage.extension}`;
-			files.push(newfile);
+			encodedFiles.push(newfile);
 		});
 		await Promise.all(tasks);
 
 		await imagePool.close();
 		imagePool = null;
 
-		return files;
+		return encodedFiles;
 	};
 
+	/**
+	 * @type { import('through2').TransformFunction }
+	 * @param {File} file
+	 */
 	const transform = async function (file, enc, cb) {
 		if (file.isNull()) {
 			cb(null, file);
@@ -150,45 +149,27 @@ function squoosh(encodeOptions, preprocessOptions) {
 			return;
 		}
 
-		if (imagePoolLock < 1) {
-			imagePoolLock++;
-			closeImagePool.cancel(); // Stop debounce timer
-			try {
-				const files = await encode(file);
-				for (const f of files) {
-					this.push(f);
-				}
-			} catch (error) {
-				cb(new PluginError(PLUGIN_NAME, error, {filename: file.path}));
-				return;
-			}
+		queue.push([this, file, cb]);
 
-			let nextfile;
-			// eslint-disable-next-line no-cond-assign
-			while (nextfile = pendingFiles.shift()) {
-				console.log('DEBUG: deq', nextfile.basename);
+		if (running < 1) {
+			running++;
+			for (let args; (args = queue.shift());) {
+				const [self, file, cb] = args;
 				try {
-					// eslint-disable-next-line no-await-in-loop
-					const nextfiles = await encode(nextfile);
-					for (const f of nextfiles) {
-						this.push(f);
+					// eslint-
+					const encoded = await encode(file); // eslint-disable-line no-await-in-loop
+					for (const f of encoded) {
+						self.push(f);
 					}
+
+					cb();
 				} catch (error) {
 					cb(new PluginError(PLUGIN_NAME, error, {filename: file.path}));
-					return;
 				}
 			}
 
-			imagePoolLock--;
-			if (imagePoolLock < 1) {
-				closeImagePool();
-			}
-		} else {
-			console.log('DEBUG: enq', file.basename);
-			pendingFiles.push(file);
+			running--;
 		}
-
-		cb();
 	};
 
 	return through.obj(transform);

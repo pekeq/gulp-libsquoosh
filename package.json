@@ -48,6 +48,8 @@
     "through2": "^4.0.2"
   },
   "devDependencies": {
+    "@types/through2": "^2.0.36",
+    "@types/vinyl": "^2.0.6",
     "ava": "^4.0.1",
     "del": "^6.0.0",
     "gulp": "^4.0.2",
