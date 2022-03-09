@@ -1,6 +1,5 @@
 'use strict';
 
-const os = require('os');
 const through = require('through2');
 const PluginError = require('plugin-error');
 const libSquoosh = require('@squoosh/lib');
@@ -8,8 +7,12 @@ const debounce = require('lodash.debounce');
 
 const PLUGIN_NAME = 'gulp-libsquoosh';
 
+/**
+ * @type {libSquoosh.ImagePool}
+ */
 let imagePool;
 let imagePoolLock = 0;
+const pendingFiles = [];
 
 /**
  * By default, encode to same image type.
@@ -86,6 +89,46 @@ function squoosh(encodeOptions, preprocessOptions) {
 		}
 	}
 
+	const encode = async function (file) {
+		if (!imagePool) {
+			imagePool = new libSquoosh.ImagePool(1);
+		}
+
+		let currentEncodeOptions = encodeOptions;
+		let currentPreprocessOptions = preprocessOptions;
+
+		const image = imagePool.ingestImage(file.contents);
+		const decoded = await image.decoded;
+
+		if (typeof encodeOptions === 'function') {
+			/** @type {SquooshCallback} */
+			const callback = encodeOptions;
+			const result = callback(new ImageSize(decoded, file.path));
+			currentEncodeOptions = result.encodeOptions || null;
+			currentPreprocessOptions = result.preprocessOptions || null;
+		}
+
+		currentEncodeOptions = (currentEncodeOptions && Object.keys(currentEncodeOptions).length > 0) ? currentEncodeOptions : DefaultEncodeOptions[file.extname];
+
+		if (currentPreprocessOptions) {
+			await image.preprocess(currentPreprocessOptions);
+		}
+
+		await image.encode(currentEncodeOptions);
+
+		const files = [];
+		const tasks = Object.values(image.encodedWith).map(async encoder => {
+			const encodedImage = await encoder;
+			const newfile = file.clone({contents: false});
+			newfile.contents = Buffer.from(encodedImage.binary);
+			newfile.extname = `.${encodedImage.extension}`;
+			files.push(newfile);
+		});
+		await Promise.all(tasks);
+
+		return files;
+	};
+
 	const transform = async function (file, enc, cb) {
 		if (file.isNull()) {
 			cb(null, file);
@@ -103,51 +146,42 @@ function squoosh(encodeOptions, preprocessOptions) {
 			return;
 		}
 
-		let currentEncodeOptions = encodeOptions;
-		let currentPreprocessOptions = preprocessOptions;
-
-		try {
+		if (imagePoolLock < 2) {
 			imagePoolLock++;
 			closeImagePool.cancel(); // Stop debounce timer
-			if (!imagePool) {
-				imagePool = new libSquoosh.ImagePool(os.cpus().length);
+			try {
+				const files = await encode(file);
+				for (const f of files) {
+					this.push(f);
+				}
+			} catch (error) {
+				cb(new PluginError(PLUGIN_NAME, error, {filename: file.path}));
+				return;
 			}
 
-			const image = imagePool.ingestImage(file.contents);
-			const decoded = await image.decoded;
-
-			if (typeof encodeOptions === 'function') {
-				/** @type {SquooshCallback} */
-				const callback = encodeOptions;
-				const result = callback(new ImageSize(decoded, file.path));
-				currentEncodeOptions = result.encodeOptions || null;
-				currentPreprocessOptions = result.preprocessOptions || null;
+			let nextfile;
+			// eslint-disable-next-line no-cond-assign
+			while (nextfile = pendingFiles.shift()) {
+				console.log('DEBUG: deq', nextfile.basename);
+				try {
+					// eslint-disable-next-line no-await-in-loop
+					const nextfiles = await encode(nextfile);
+					for (const f of nextfiles) {
+						this.push(f);
+					}
+				} catch (error) {
+					cb(new PluginError(PLUGIN_NAME, error, {filename: file.path}));
+					return;
+				}
 			}
 
-			currentEncodeOptions = (currentEncodeOptions && Object.keys(currentEncodeOptions).length > 0) ? currentEncodeOptions : DefaultEncodeOptions[file.extname];
-
-			if (currentPreprocessOptions) {
-				await image.preprocess(currentPreprocessOptions);
-			}
-
-			await image.encode(currentEncodeOptions);
-
-			const tasks = Object.values(image.encodedWith).map(async encoder => {
-				const encodedImage = await encoder;
-				const newfile = file.clone({contents: false});
-				newfile.contents = Buffer.from(encodedImage.binary);
-				newfile.extname = `.${encodedImage.extension}`;
-				this.push(newfile);
-			});
-			await Promise.all(tasks);
-		} catch (error) {
-			cb(new PluginError(PLUGIN_NAME, error, {filename: file.path}));
-			return;
-		} finally {
 			imagePoolLock--;
 			if (imagePoolLock < 1) {
 				closeImagePool();
 			}
+		} else {
+			console.log('DEBUG: enq', file.basename);
+			pendingFiles.push(file);
 		}
 
 		cb();
