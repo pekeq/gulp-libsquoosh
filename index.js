@@ -1,5 +1,6 @@
 'use strict';
 
+const os = require('os');
 const through = require('through2');
 const PluginError = require('plugin-error');
 const libSquoosh = require('@squoosh/lib');
@@ -91,7 +92,7 @@ function squoosh(encodeOptions, preprocessOptions) {
 
 	const encode = async function (file) {
 		if (!imagePool) {
-			imagePool = new libSquoosh.ImagePool(1);
+			imagePool = new libSquoosh.ImagePool(os.cpus().length);
 		}
 
 		let currentEncodeOptions = encodeOptions;
@@ -126,6 +127,9 @@ function squoosh(encodeOptions, preprocessOptions) {
 		});
 		await Promise.all(tasks);
 
+		await imagePool.close();
+		imagePool = null;
+
 		return files;
 	};
 
@@ -146,7 +150,7 @@ function squoosh(encodeOptions, preprocessOptions) {
 			return;
 		}
 
-		if (imagePoolLock < 2) {
+		if (imagePoolLock < 1) {
 			imagePoolLock++;
 			closeImagePool.cancel(); // Stop debounce timer
 			try {
