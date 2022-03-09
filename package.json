@@ -39,7 +39,7 @@
     "url": "https://github.com/pekeq/gulp-libsquoosh/issues"
   },
   "engines": {
-    "node": " ^12.5.0 || ^14.0.0 || ^16.0.0 "
+    "node": " ^14.0.0 || ^16.0.0 "
   },
   "dependencies": {
     "@squoosh/lib": "^0.4.0",
