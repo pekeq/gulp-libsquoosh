@@ -2,6 +2,11 @@
 
 Minify images with [libSquoosh](https://github.com/GoogleChromeLabs/squoosh/tree/dev/libsquoosh), the [Squoosh](https://squoosh.app/) API for Node.
 
+## Important Notice
+
+From gulp-libsquoosh version 1.1.x, support for Node.js 12.x has been stopped because using libSquoosh 0.4.x with Node.js 12.x causes a wasm out-of-memory error.
+If you want to use gulp-libsquoosh with node.js 12.x, you can use version 1.0.x. This version uses libSquoosh 0.3.x.
+
 ## Install
 
 ```
@@ -296,4 +301,4 @@ Description of the options can be found in [libSquoosh README](https://github.co
 
 MIT License
 
-Copyright (c) 2021 Hideo Matsumoto
+Copyright (c) 2021-2022 Hideo Matsumoto
