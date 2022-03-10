@@ -7,18 +7,18 @@ const libSquoosh = require('@squoosh/lib');
 
 const PLUGIN_NAME = 'gulp-libsquoosh';
 
-/**
- * @type {libSquoosh.ImagePool}
- */
+// How many parallel operations allowed while processing ImagePool.
+const NUM_PARALLEL = os.cpus().length > 1 ? 2 : 1;
+
+// Reuse ImagePool every 5 images.
+const REUSE_IMAGEPOOL = 5;
+
+/** @type {libSquoosh.ImagePool} */
 let imagePool;
 
-const NUM_PARALLEL = os.cpus().length > 1 ? 2 : 1;
 const queue = [];
 let running = 0;
-
-/**
- * @typedef { import('vinyl') } File
- */
+let processed = 0;
 
 /**
  * By default, encode to same image type.
@@ -31,6 +31,9 @@ const DefaultEncodeOptions = Object.fromEntries(
 	})
 );
 
+/**
+ * @typedef { import('vinyl') } File
+ */
 /**
  * @typedef {Object} BoxSize
  * @property {number} width
@@ -123,8 +126,12 @@ function squoosh(encodeOptions, preprocessOptions) {
 		});
 		await Promise.all(tasks);
 
-		await imagePool.close();
-		imagePool = null;
+		processed++;
+		if (processed > REUSE_IMAGEPOOL) {
+			await imagePool.close();
+			imagePool = null;
+			processed = 0;
+		}
 
 		return encodedFiles;
 	};
@@ -157,7 +164,6 @@ function squoosh(encodeOptions, preprocessOptions) {
 			for (let args; (args = queue.shift());) {
 				const [self, file, cb] = args;
 				try {
-					// eslint-
 					const encoded = await encode(file); // eslint-disable-line no-await-in-loop
 					for (const f of encoded) {
 						self.push(f);
