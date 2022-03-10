@@ -11,7 +11,7 @@
   ],
   "scripts": {
     "test": "xo && ava --verbose --no-worker-threads --timeout 5m",
-    "types": "npx typescript index.js --declaration --allowJs --emitDeclarationOnly --outDir ."
+    "types": "npx tsc index.js --declaration --allowJs --emitDeclarationOnly --outDir ."
   },
   "repository": {
     "type": "git",

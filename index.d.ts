@@ -1,5 +1,8 @@
 export = squoosh;
 /**
+ * @typedef { import('vinyl') } File
+ */
+/**
  * @typedef {Object} BoxSize
  * @property {number} width
  * @property {number} height
@@ -37,7 +40,7 @@ export = squoosh;
  */
 declare function squoosh(encodeOptions?: (EncodeOptions | SquooshOptions | SquooshCallback), preprocessOptions: any): NodeJS.ReadWriteStream;
 declare namespace squoosh {
-    export { DefaultEncodeOptions, ImageSize, BoxSize, SquooshOptions, SquooshCallback, EncodeOptions, PreprocessOptions };
+    export { DefaultEncodeOptions, ImageSize, File, BoxSize, SquooshOptions, SquooshCallback, EncodeOptions, PreprocessOptions };
 }
 type EncodeOptions = {
     mozjpeg?: any;
@@ -60,7 +63,9 @@ type DefaultEncodeOptions = [extension: string];
  * By default, encode to same image type.
  * @typedef {[extension:string]: Object}
  */
-declare const DefaultEncodeOptions: any;
+declare const DefaultEncodeOptions: {
+    [k: string]: any;
+};
 /**
  * @class
  * @param {Object} bitmap
@@ -102,6 +107,7 @@ declare class ImageSize {
      */
     cover(targetWidth: number, targetHeight?: number): BoxSize;
 }
+type File = import('vinyl');
 type BoxSize = {
     width: number;
     height: number;
