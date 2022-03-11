@@ -108,7 +108,6 @@ function images() {
         null, // use default
         {
           resize: {
-            enabled: true,
             // specify either width or height
             // when you specify width and height, image resized to exact size you specified
             width: 200,
@@ -139,7 +138,6 @@ function images() {
         },
         preprocessOptions: {
           rotate: {
-            enabled: true,
             numRotations: 2,
           },
         },
@@ -164,7 +162,6 @@ function images() {
       squoosh((src) => ({
         preprocessOptions: {
           resize: {
-            enabled: true,
             width: Math.round(src.width / 2),
             height: Math.round(src.height / 2),
           },
@@ -193,7 +190,6 @@ function images() {
       squoosh((src) => ({
         preprocessOptions: {
           resize: {
-            enabled: true,
             ...src.contain(200),
           },
         },
@@ -226,12 +222,10 @@ function images() {
         {
           // quantize images
           quant: {
-            enabled: true,
             numColors: 128, // default=255
           },
           // rotate images
           rotate: {
-            enabled: true,
             numRotations: 1, // (numRotations * 90) degrees
           },
         }
