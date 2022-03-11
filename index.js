@@ -103,7 +103,7 @@ function squoosh(encodeOptions, preprocessOptions) {
 	 * @param {File} file
 	 * @returns {File[]}
 	 */
-	const encode = async function (file) {
+	const encode = async function (file, encodeOptions, preprocessOptions) {
 		closeImagePoolWhenIdle.cancel(); // Stop debounce timer
 
 		if (!imagePool) {
@@ -175,14 +175,14 @@ function squoosh(encodeOptions, preprocessOptions) {
 			return;
 		}
 
-		queue.push([this, file, cb]);
+		queue.push([this, file, encodeOptions, preprocessOptions, cb]);
 
 		if (running < 1) {
 			running++;
 			for (let args; (args = queue.shift());) {
-				const [self, file, cb] = args;
+				const [self, file, encodeOptions, preprocessOptions, cb] = args;
 				try {
-					const encoded = await encode(file); // eslint-disable-line no-await-in-loop
+					const encoded = await encode(file, encodeOptions, preprocessOptions); // eslint-disable-line no-await-in-loop
 					for (const f of encoded) {
 						self.push(f);
 					}
